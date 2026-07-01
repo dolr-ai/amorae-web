@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+.env.local
+secrets/
+.venv/
+venv/
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+*.previous_image_tag
+.last_good_image_tag

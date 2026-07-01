@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ bot.display_name }} · Amorae{% endblock %}
+{% block content %}
+<section class="chat" data-bot="{{ bot.handle }}">
+  <header class="chat-head">
+    <span class="avatar" style="background-image:url('{{ bot.hero_image }}')"></span>
+    <span class="name">{{ bot.display_name }}</span>
+  </header>
+
+  <div id="messages" class="messages">
+    {% for m in history %}
+    <div class="msg {{ m.role }}">{{ m.content }}</div>
+    {% endfor %}
+  </div>
+
+  <form id="composer" class="composer">
+    <input id="input" type="text" autocomplete="off" placeholder="Message {{ bot.display_name }}…" required>
+    <button type="submit">Send</button>
+  </form>
+</section>
+<script src="/static/chat.js"></script>
+{% endblock %}

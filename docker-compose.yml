@@ -1,0 +1,55 @@
+services:
+  app:
+    image: ${IMAGE_REPO:-ghcr.io/dolr-ai/amorae-web}:${IMAGE_TAG:-latest}
+    container_name: ${PROJECT_REPO:-amorae-web}
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+    expose:
+      - "8000"
+    networks:
+      web:
+      db-internal:
+        aliases:
+          - ${PROJECT_REPO:-amorae-web}-${SERVER_NAME:-local}
+    environment:
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: production
+      APP_VERSION: ${IMAGE_TAG:-unknown}
+      PROJECT_REPO: ${PROJECT_REPO:-amorae-web}
+      BRAND_NAME: ${BRAND_NAME:-Amorae}
+      BRAND_DOMAIN: ${BRAND_DOMAIN:-amorae.ai}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-2.5-flash}
+      V2_BASE_URL: ${V2_BASE_URL:-https://agent.rishi.yral.com}
+      V2_WEB_SHARED_SECRET: ${V2_WEB_SHARED_SECRET:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      GEO_BLOCKED_COUNTRIES: ${GEO_BLOCKED_COUNTRIES:-}
+      DEV_ALLOW_ANON: ${DEV_ALLOW_ANON:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://amorae.ai}
+    secrets:
+      - database_url
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health',timeout=5).status==200 else 1)"
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+
+secrets:
+  database_url:
+    file: ./secrets/database_url
+
+networks:
+  web:
+    external: true
+  db-internal:
+    external: true
+    name: ${OVERLAY_NETWORK:-db-internal}

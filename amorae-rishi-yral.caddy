@@ -1,0 +1,30 @@
+# amorae.ai — per-service Caddy site for the adult web brand.
+#
+# Deployed to /home/deploy/caddy/conf.d/ on each edge node (rishi-1/2/3),
+# bind-mounted read-only into the Caddy container. This file is amorae's
+# OWN site — it must NEVER be hand-merged into a central Caddyfile and
+# must NEVER touch chat-ai routes on 1/2/3 (Rule 7).
+#
+# Routes amorae.ai → the amorae-web containers on rishi-4/5 (private IPs
+# resolved at deploy time). Cloudflare fronts the public name; Caddy
+# terminates TLS at the edge and reverse-proxies to the app.
+
+amorae.ai, www.amorae.ai {
+	encode zstd gzip
+
+	# App containers on the v2 cluster. Health-checked; edge fails over
+	# between nodes. (Placeholder upstreams — deploy renders real IPs.)
+	reverse_proxy RISHI_4_PRIVATE_IP:8000 RISHI_5_PRIVATE_IP:8000 {
+		lb_policy round_robin
+		health_uri /health
+		health_interval 10s
+		health_timeout 3s
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}
