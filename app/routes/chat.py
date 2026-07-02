@@ -14,7 +14,6 @@ import logging
 from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 
-import config
 from models import ChatMessageIn, WebSession
 from services import personas, llm, v2_client
 from repositories import conversation_repo, message_repo

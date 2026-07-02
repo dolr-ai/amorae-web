@@ -29,7 +29,9 @@ APP_VERSION = _env("APP_VERSION", "0.1.0")
 ENVIRONMENT = _env("ENVIRONMENT", "development")
 DEBUG = _env_bool("DEBUG", False)
 HOST = _env("HOST", "0.0.0.0")
-PORT = _env_int("PORT", 8000)
+PORT = _env_int(
+    "PORT", 8003
+)  # fleet port map: analytics 8001, marketing 8002, amorae 8003
 
 # Brand identity — its OWN name, deliberately NOT "yral" (Level-2 / Risk 6).
 BRAND_NAME = _env("BRAND_NAME", "Amorae")

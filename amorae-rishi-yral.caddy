@@ -14,7 +14,7 @@ amorae.ai, www.amorae.ai {
 
 	# App containers on the v2 cluster. Health-checked; edge fails over
 	# between nodes. (Placeholder upstreams — deploy renders real IPs.)
-	reverse_proxy RISHI_4_PRIVATE_IP:8000 RISHI_5_PRIVATE_IP:8000 {
+	reverse_proxy RISHI_4_PRIVATE_IP:8003 RISHI_5_PRIVATE_IP:8003 {
 		lb_policy round_robin
 		health_uri /health
 		health_interval 10s

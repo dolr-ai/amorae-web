@@ -34,7 +34,9 @@ async def exchange_ticket(ticket: str) -> HandoffIdentity | None:
     url = f"{config.V2_BASE_URL.rstrip('/')}/api/v1/spicy/handoff/exchange"
     try:
         async with httpx.AsyncClient(timeout=config.V2_TIMEOUT) as client:
-            resp = await client.post(url, headers=_auth_headers(), json={"ticket": ticket})
+            resp = await client.post(
+                url, headers=_auth_headers(), json={"ticket": ticket}
+            )
         resp.raise_for_status()
         data = resp.json()
         return HandoffIdentity(
@@ -60,7 +62,11 @@ async def write_consent_audit(user_id: str, source_ip: str | None) -> bool:
             resp = await client.post(
                 url,
                 headers=_auth_headers(),
-                json={"user_id": user_id, "source_ip": source_ip, "surface": "web_spicy"},
+                json={
+                    "user_id": user_id,
+                    "source_ip": source_ip,
+                    "surface": "web_spicy",
+                },
             )
         resp.raise_for_status()
         return True

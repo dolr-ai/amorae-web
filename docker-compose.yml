@@ -9,7 +9,7 @@ services:
           memory: 2G
           cpus: '2.0'
     expose:
-      - "8000"
+      - "8003"
     networks:
       web:
       db-internal:
@@ -37,7 +37,7 @@ services:
         - CMD
         - python
         - -c
-        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health',timeout=5).status==200 else 1)"
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8003/health',timeout=5).status==200 else 1)"
       interval: 5s
       timeout: 3s
       retries: 3

@@ -1,0 +1,3 @@
+# Trivy allowlist for amorae-web container scans. One CVE ID per line;
+# # for comments. HIGH+CRITICAL fail CI unless listed here with a
+# justification. Empty baseline.

@@ -1,0 +1,112 @@
+# docker-compose.swarm.yml — production Swarm stack for amorae-web.
+#
+# 2 replicas on the rishi-4/5 app nodes, joined to the yral-v2-data-plane
+# overlay so the Layer-2 Caddy can reach it overlay-by-name and so it can
+# reach amorae_db on Patroni. Deploy: `docker stack deploy -c this <name>`.
+#
+# ⚠️ VERIFY WITH SESSION 6 BEFORE RUNNING AGAINST PROD (Rishi asked for this):
+#   1. SERVICE NAME — deploy.yml/rollback.yml do `docker service update
+#      amorae-web` (bare name). A stack deploy names services
+#      `<stack>_<key>`. Either deploy this stack as name `amorae` with the
+#      service key kept so the resulting name matches what deploy.yml
+#      targets, or deploy amorae-web as a standalone service. Confirm how
+#      v2's `yral-rishi-agent` service is actually named/managed and match it.
+#   2. OVERLAY NETWORKS — confirm `yral-v2-data-plane` is the right (and
+#      sufficient) external overlay for both L2-Caddy reach AND amorae_db
+#      access, or whether a public-web/internal overlay is also expected.
+#   3. PLACEMENT — pin the 2 replicas to rishi-4/5 (node.hostname or a node
+#      label) once the real hostnames/labels are confirmed.
+#   4. CADDY — confirm whether L2 routing uses these `caddy.*` labels (Caddy
+#      Swarm plugin) or the edge `amorae-rishi-yral.caddy` file on rishi-1/2/3
+#      (or both). This file assumes label-based L2 + file-based L1 edge.
+
+version: "3.9"
+
+services:
+  amorae-web:
+    image: ${IMAGE_REPO:-ghcr.io/dolr-ai/amorae-web}:${IMAGE_TAG}
+
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      APP_VERSION: ${IMAGE_TAG}
+      BRAND_NAME: Amorae
+      BRAND_DOMAIN: amorae.ai
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-2.5-flash}
+      V2_BASE_URL: ${V2_BASE_URL:-https://agent.rishi.yral.com}
+      V2_WEB_SHARED_SECRET: ${V2_WEB_SHARED_SECRET:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: production
+      COOKIE_SECURE: "true"
+      GEO_BLOCKED_COUNTRIES: ${GEO_BLOCKED_COUNTRIES:-}
+      DEV_ALLOW_ANON: "false"
+      CORS_ORIGINS: https://amorae.ai
+
+    deploy:
+      # 2 replicas on the app nodes (rishi-4/5). max_replicas_per_node=1
+      # keeps them on separate nodes; add a hostname/label constraint once
+      # confirmed (see VERIFY note #3).
+      replicas: 2
+      placement:
+        max_replicas_per_node: 1
+
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+        monitor: 30s
+
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+
+      restart_policy:
+        condition: any
+        max_attempts: 3
+        window: 60s
+
+      # Layer-2 Caddy discovery labels (Caddy Swarm plugin). Routes
+      # amorae.ai to this service's overlay endpoint on port 8003.
+      labels:
+        - "caddy=amorae.ai"
+        - "caddy.reverse_proxy={{upstreams 8003}}"
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8003/health',timeout=5).status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+
+    # amorae_db DSN, mounted as a file (read by app/database.py). This is
+    # the ONLY DB credential amorae holds — it points at amorae_db, never
+    # yral_agent_db (Level-2).
+    secrets:
+      - source: amorae_database_url
+        target: database_url
+        mode: 0400
+
+    networks:
+      - yral-v2-data-plane
+
+networks:
+  # External overlay created by the cluster bootstrap. amorae attaches; it
+  # does not create it. Fails fast at deploy if the overlay is missing.
+  yral-v2-data-plane:
+    external: true
+
+secrets:
+  # Created out-of-band: `docker secret create amorae_database_url <file>`
+  # (or via the CI secret-sync). Content = the amorae_db connection string.
+  amorae_database_url:
+    external: true

@@ -21,7 +21,9 @@ async def terms(request: Request):
 
 @router.get("/report", response_class=HTMLResponse)
 async def report_form(request: Request):
-    return templates.TemplateResponse("report.html", {"request": request, "sent": False})
+    return templates.TemplateResponse(
+        "report.html", {"request": request, "sent": False}
+    )
 
 
 @router.post("/report", response_class=HTMLResponse)

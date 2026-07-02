@@ -12,7 +12,6 @@ import asyncio
 import json
 import logging
 import random
-import time
 from typing import AsyncIterator
 
 import httpx
@@ -69,7 +68,9 @@ async def complete(messages: list[dict], *, max_retries: int = 3) -> str:
             last_error = e
             if attempt < max_retries - 1:
                 backoff = (0.2 * (2**attempt)) + random.uniform(-0.05, 0.05)
-                logger.warning("llm.complete retry %d/%d: %s", attempt + 1, max_retries, e)
+                logger.warning(
+                    "llm.complete retry %d/%d: %s", attempt + 1, max_retries, e
+                )
                 await asyncio.sleep(max(backoff, 0.05))
                 continue
             break
@@ -91,7 +92,9 @@ async def complete_stream(messages: list[dict]) -> AsyncIterator[str]:
     url = f"{config.OPENROUTER_BASE_URL.rstrip('/')}/chat/completions"
 
     async with httpx.AsyncClient(timeout=config.OPENROUTER_TIMEOUT) as client:
-        async with client.stream("POST", url, headers=_headers(), json=body) as response:
+        async with client.stream(
+            "POST", url, headers=_headers(), json=body
+        ) as response:
             response.raise_for_status()
             async for line in response.aiter_lines():
                 if not line or not line.startswith("data: "):

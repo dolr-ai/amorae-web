@@ -1,0 +1,6 @@
+# pip-audit ignore-list for amorae-web. One vuln ID per line; # for
+# comments. pip-audit runs in --strict mode, so ANY finding not listed
+# here fails CI. Add entries only with a per-CVE justification, in a PR.
+#
+# Empty baseline — populate if/when the first scan surfaces an accepted
+# vuln (likely shared with v2: python-multipart / starlette advisories).
