@@ -1,12 +1,10 @@
-# amorae-web gitleaks config. Inherits the default ruleset; extend only
-# the allowlist. Adding an entry: only after manually confirming the match
-# is a true false positive. Real secrets get rotated, not allowlisted.
+# amorae-web gitleaks config. Inherits the default ruleset. No allowlist
+# section yet — gitleaks 8.30.1 rejects an EMPTY [allowlist] ("must contain
+# at least one check"), so we omit it entirely until the first confirmed
+# false positive. Add an [allowlist] with real commits/paths/regexes/stopwords
+# entries then. Real secrets get rotated, not allowlisted.
 
 title = "amorae-web gitleaks config"
 
 [extend]
 useDefault = true
-
-[allowlist]
-description = "No baseline findings yet — this repo started clean."
-# regexes/paths/commits go here as false positives are confirmed in PRs.

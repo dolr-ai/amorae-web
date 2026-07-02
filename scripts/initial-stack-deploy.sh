@@ -18,7 +18,7 @@ set -euo pipefail
 STACK="amorae"
 SERVICE="amorae_web"
 OVERLAY="yral-v2-data-plane"
-DB_SECRET="amorae_database_url"
+REQUIRED_SECRETS="amorae_db_dsn_rw V2_WEB_SHARED_SECRET"
 COMPOSE="docker-compose.swarm.yml"
 
 fail() { echo "✗ PREFLIGHT FAIL: $*" >&2; exit 1; }
@@ -35,17 +35,19 @@ preflight() {
     || fail "overlay '$OVERLAY' not found — cluster bootstrap must create it first"
   ok "overlay '$OVERLAY' exists"
 
-  docker secret ls --format '{{.Name}}' | grep -qx "$DB_SECRET" \
-    || fail "docker secret '$DB_SECRET' missing — create it: printf '%s' '<amorae_db DSN>' | docker secret create $DB_SECRET -"
-  ok "secret '$DB_SECRET' exists"
+  for s in $REQUIRED_SECRETS; do
+    docker secret ls --format '{{.Name}}' | grep -qx "$s" \
+      || fail "docker secret '$s' missing — Session 6 creates it: printf '%s' '<value>' | docker secret create $s -"
+    ok "secret '$s' exists"
+  done
 
   [ -n "${IMAGE_TAG:-}" ] || fail "IMAGE_TAG not set (the git SHA / image tag to run)"
   ok "IMAGE_TAG=$IMAGE_TAG"
 
-  for v in OPENROUTER_API_KEY V2_WEB_SHARED_SECRET; do
-    [ -n "${!v:-}" ] || fail "$v not set (source your .env first)"
-  done
-  ok "required runtime env present (OPENROUTER_API_KEY, V2_WEB_SHARED_SECRET)"
+  # V2_WEB_SHARED_SECRET is now a Swarm secret (file), not env. OPENROUTER
+  # key is still env (passed via the stack .env).
+  [ -n "${OPENROUTER_API_KEY:-}" ] || fail "OPENROUTER_API_KEY not set (source your .env first)"
+  ok "required runtime env present (OPENROUTER_API_KEY)"
 
   [ -f "$COMPOSE" ] || fail "$COMPOSE not found — run from the repo root"
   ok "$COMPOSE present"

@@ -28,7 +28,7 @@ services:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-2.5-flash}
       V2_BASE_URL: ${V2_BASE_URL:-https://agent.rishi.yral.com}
-      V2_WEB_SHARED_SECRET: ${V2_WEB_SHARED_SECRET:-}
+      # V2_WEB_SHARED_SECRET is a mounted Swarm secret (see below), not env.
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: production
       COOKIE_SECURE: "true"
@@ -77,12 +77,16 @@ services:
       retries: 3
       start_period: 20s
 
-    # amorae_db DSN, mounted as a file (read by app/database.py). This is
-    # the ONLY DB credential amorae holds — it points at amorae_db, never
-    # yral_agent_db (Level-2).
+    # Swarm secrets mounted as files (created by Session 6):
+    #   amorae_db_dsn_rw     → /run/secrets/amorae_db_dsn_rw   (amorae_db DSN,
+    #     the ONLY DB credential amorae holds — never yral_agent_db, Level-2)
+    #   V2_WEB_SHARED_SECRET → /run/secrets/V2_WEB_SHARED_SECRET (v2 handoff auth)
     secrets:
-      - source: amorae_database_url
-        target: database_url
+      - source: amorae_db_dsn_rw
+        target: amorae_db_dsn_rw
+        mode: 0400
+      - source: V2_WEB_SHARED_SECRET
+        target: V2_WEB_SHARED_SECRET
         mode: 0400
 
     networks:
@@ -95,7 +99,9 @@ networks:
     external: true
 
 secrets:
-  # Created out-of-band: `docker secret create amorae_database_url <file>`.
-  # Content = the amorae_db connection string.
-  amorae_database_url:
+  # External = created out-of-band on the cluster by Session 6; the stack
+  # verifies they exist at deploy time and fails fast if missing.
+  amorae_db_dsn_rw:
+    external: true
+  V2_WEB_SHARED_SECRET:
     external: true

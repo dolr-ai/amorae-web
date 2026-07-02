@@ -8,9 +8,10 @@ _pool: asyncpg.Pool | None = None
 
 
 def _read_database_url() -> str:
-    # Docker secrets are mounted as files — more secure than env vars.
-    # This DSN points at amorae_db ONLY. amorae has no yral_agent_db creds.
-    secret_file = "/run/secrets/database_url"
+    # Swarm secret mounted as a file (Session 6 created `amorae_db_dsn_rw`);
+    # env fallback for local dev. This DSN points at amorae_db ONLY —
+    # amorae holds no yral_agent_db credentials.
+    secret_file = "/run/secrets/amorae_db_dsn_rw"
     if os.path.exists(secret_file):
         with open(secret_file) as f:
             return f.read().strip()

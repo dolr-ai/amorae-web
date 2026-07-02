@@ -23,6 +23,17 @@ def _env_bool(key: str, default: bool = False) -> bool:
     return _env(key, str(default)).lower() in ("true", "1", "yes")
 
 
+def _secret(name: str, env_key: str | None = None) -> str:
+    """Read a Swarm secret from /run/secrets/<name> (the prod pattern),
+    falling back to an env var for local dev. Matches how amorae_db_dsn_rw
+    + V2_WEB_SHARED_SECRET are mounted on the cluster (Session 6)."""
+    path = f"/run/secrets/{name}"
+    if os.path.exists(path):
+        with open(path) as f:
+            return f.read().strip()
+    return _env(env_key or name)
+
+
 # App
 APP_NAME = _env("APP_NAME", "Amorae")
 APP_VERSION = _env("APP_VERSION", "0.1.0")
@@ -52,7 +63,9 @@ OPENROUTER_BASE_URL = _env("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"
 # JWT NEVER reaches this domain (§4.7). amorae has NO credential to
 # yral_agent_db — only these HTTP calls.
 V2_BASE_URL = _env("V2_BASE_URL", "https://agent.rishi.yral.com")
-V2_WEB_SHARED_SECRET = _env("V2_WEB_SHARED_SECRET")
+# Mounted as a Swarm secret file on the cluster (Session 6 placed it);
+# env fallback for local dev.
+V2_WEB_SHARED_SECRET = _secret("V2_WEB_SHARED_SECRET")
 V2_TIMEOUT = _env_int("V2_TIMEOUT", 10)
 
 # Sessions & consent cookies (the LIVE 18+ gate lives here, on the web)
