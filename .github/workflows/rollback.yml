@@ -14,7 +14,7 @@ on:
         default: 'Rolling back because: '
 
 env:
-  SERVICE: amorae-web
+  SERVICE: amorae_web   # <stack>_<key> = amorae_web
   HEALTH_URL: https://amorae.ai/health
   SWARM_MANAGER_1: 138.201.128.108
   SWARM_MANAGER_2: 88.99.160.251

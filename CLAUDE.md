@@ -49,12 +49,16 @@ Mobile app (SFW, deflects) → link-out → **amorae.ai** (this service) →
 7. Text-only, FREE for v1. Voice = fast-follow; images = separate later call.
 8. Geo-gate ships default-OPEN; restricting a region is a config flip.
 
-## Deploy (same rishi-4/5 cluster, own site)
-- `amorae-rishi-yral.caddy` — this service's OWN edge site (rishi-1/2/3).
-  Routes `amorae.ai` → amorae-web containers on rishi-4/5. Never merged
-  into a central Caddyfile.
-- `docker-compose.yml` + `Dockerfile` mirror v2's single-container app.
+## Deploy (same rishi-4/5 cluster)
+- Swarm stack: `docker stack deploy -c docker-compose.swarm.yml amorae` →
+  service `amorae_web` (2 replicas on rishi-4/5, `yral-v2-data-plane` overlay).
+  First deploy is manual (`scripts/initial-stack-deploy.sh`); after that
+  `deploy.yml` does `docker service update amorae_web` on every main merge.
+- **Caddy (L1 edge + L2 swarm) is owned by Session 6**, via the Swarm
+  CONFIGS pattern — NOT labels, NOT a bind-mounted `.caddy` file in this
+  repo. Do not add Caddy config here.
 - `amorae_db` is a SEPARATE database on the SAME Patroni cluster.
+- Container listens on **8003** (fleet map: analytics 8001, mktg 8002).
 
 ## Local dev / skeleton test
 `DEV_ALLOW_ANON=true` lets "Continue (18+)" open an anonymous session with

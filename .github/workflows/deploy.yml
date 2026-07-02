@@ -34,7 +34,9 @@ concurrency:
 
 env:
   IMAGE: ghcr.io/dolr-ai/amorae-web
-  SERVICE: amorae-web
+  # Swarm service name = <stack>_<service key> = amorae_web (stack `amorae`,
+  # key `web` in docker-compose.swarm.yml). deploy = docker service update.
+  SERVICE: amorae_web
   HEALTH_URL: https://amorae.ai/health
   ROLLBACK_WORKFLOW: rollback.yml
   SWARM_MANAGER_1: 138.201.128.108
