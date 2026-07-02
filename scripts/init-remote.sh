@@ -12,8 +12,8 @@ ORG="dolr-ai"
 REPO="amorae-web"
 BRANCH="feat/amorae-walking-skeleton"
 
-# ── 1. Wire the remote ──────────────────────────────────────────────────
-git remote add origin "git@github.com:$ORG/$REPO.git"
+# ── 1. Wire the remote (HTTPS — matches gh's configured git protocol) ────
+git remote add origin "https://github.com/$ORG/$REPO.git"
 
 # ── 2. Establish an EMPTY main, then land the skeleton via a REVIEWABLE PR.
 # NOTE — deliberate deviation from the literal sequence in chat: doing
@@ -27,15 +27,20 @@ git push -u origin main
 git checkout "$BRANCH"                            # restores the skeleton working tree
 git push -u origin "$BRANCH"
 
-gh pr create --repo "$ORG/$REPO" --base main --head "$BRANCH" \
+# Opened as DRAFT: Session 6 first-reviews the CI/CD files, then ready-for-
+# review is flipped for Rishi (also exercises codex-review.yml's
+# ready_for_review trigger).
+gh pr create --repo "$ORG/$REPO" --base main --head "$BRANCH" --draft \
   --title "Initial: amorae-web walking skeleton + CI/CD + Swarm stack" \
   --body "First PR: landing → 18+ gate → SSE text chat (persisted to amorae_db), plus the full CI/CD + Swarm stack. See README + CLAUDE.md. Deploy won't fire usefully until the cluster service exists — the initial stack deploy is manual (scripts/initial-stack-deploy.sh)."
 
-# ── 3. GitHub Actions secrets (CI/CD only) ──────────────────────────────
-# GITHUB_TOKEN is auto-provided by Actions — do NOT set it. GHCR push uses
-# GITHUB_TOKEN (same-repo package), so no separate GHCR_TOKEN is needed.
-gh secret set DEPLOY_SSH_KEY       --repo "$ORG/$REPO" < ~/.ssh/rishi-hetzner-ci-key
-gh secret set OPENAI_CODEX_API_KEY --repo "$ORG/$REPO"   # paste value (Keychain: account=dolr-ai)
+# ── 3. GitHub Actions secrets (CI/CD only) — RUN THESE YOURSELF ──────────
+# These handle credentials (a private SSH key + an API token), so the
+# operator runs them, not the agent. GITHUB_TOKEN is auto-provided by
+# Actions — do NOT set it. GHCR push uses GITHUB_TOKEN (same-repo package),
+# so no separate GHCR_TOKEN is needed.
+#   gh secret set DEPLOY_SSH_KEY       --repo dolr-ai/amorae-web < ~/.ssh/rishi-hetzner-ci-key
+#   gh secret set OPENAI_CODEX_API_KEY --repo dolr-ai/amorae-web   # paste value (Keychain: account=dolr-ai)
 
 # GOTCHA (v2 #303): if deploy's `crane tag ... :stable` / GHCR push fails
 # with "installation not allowed to Write organization package", enable
