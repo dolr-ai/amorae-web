@@ -45,7 +45,7 @@ def test_app_registers_expected_routes():
     from main import app
 
     paths = {r.path for r in app.routes}
-    assert "/health" in paths
+    assert "/health" in paths and "/healthz" in paths
     assert "/privacy" in paths and "/terms" in paths and "/report" in paths
     assert "/{bot_handle}" in paths
     assert "/{bot_handle}/chat" in paths

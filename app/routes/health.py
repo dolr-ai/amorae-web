@@ -7,6 +7,7 @@ router = APIRouter()
 
 
 @router.get("/health")
+@router.get("/healthz")  # k8s-style alias; both resolve to the same check
 async def health():
     db_ok = await check_db_health()
     return {

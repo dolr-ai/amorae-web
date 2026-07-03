@@ -151,6 +151,31 @@ jobs:
           echo "healthy=false" >> "$GITHUB_OUTPUT"
           exit 1
 
+      # Post-deploy smoke: health (already gated above) + the v2 valet-ticket
+      # single-use property, run ON a manager so X-Amorae-Secret stays in the
+      # cluster (the script execs inside the amorae_web container). ADVISORY —
+      # a v2-side ticket hiccup shouldn't roll back a healthy amorae image, so
+      # this never triggers the rollback (that stays gated on /health only).
+      - name: Post-deploy smoke — health + single-use ticket (advisory)
+        id: smoke
+        if: steps.health_check.outcome == 'success'
+        continue-on-error: true
+        run: |
+          for host in ${{ env.SWARM_MANAGER_1 }} ${{ env.SWARM_MANAGER_2 }} ${{ env.SWARM_MANAGER_3 }}; do
+            SSH="ssh -i ~/.ssh/deploy_key -o ConnectTimeout=15 -o BatchMode=yes -o StrictHostKeyChecking=yes ${{ env.SWARM_USER }}@$host"
+            $SSH true 2>/dev/null || { echo "· $host unreachable"; continue; }
+            scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
+              scripts/post-deploy-smoke.sh "${{ env.SWARM_USER }}@$host:/tmp/amorae-smoke.sh"
+            if $SSH "HEALTH_URL='${{ env.HEALTH_URL }}' bash /tmp/amorae-smoke.sh"; then
+              echo "✓ post-deploy smoke passed via $host"
+            else
+              echo "⚠ post-deploy smoke FAILED via $host (advisory — investigate; deploy NOT rolled back)"
+            fi
+            $SSH "rm -f /tmp/amorae-smoke.sh" 2>/dev/null || true
+            exit 0
+          done
+          echo "⚠ could not reach any manager to run post-deploy smoke"
+
       - name: Auto-rollback if /health failed
         if: failure() && steps.health_check.outcome == 'failure'
         env:
