@@ -38,7 +38,7 @@ jobs:
       - run: pip install openai
       - name: Run Codex review
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_CODEX_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_AMORAE_AI }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python .github/scripts/codex-review.py
