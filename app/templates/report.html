@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Report · Amorae{% endblock %}
+{% block content %}
+<section class="prose">
+  <h1>Report content</h1>
+  {% if sent %}
+  <p>Thank you — your report has been received.</p>
+  {% else %}
+  <p>Tell us what's wrong and we'll review it.</p>
+  <form method="post" action="/report" class="report-form">
+    <label>Reason
+      <select name="reason">
+        <option value="illegal">Illegal content</option>
+        <option value="minor">Involves a minor</option>
+        <option value="harassment">Harassment or abuse</option>
+        <option value="other">Other</option>
+      </select>
+    </label>
+    <label>Details
+      <textarea name="details" rows="5" placeholder="Describe the issue…"></textarea>
+    </label>
+    <button type="submit">Submit report</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

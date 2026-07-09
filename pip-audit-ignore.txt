@@ -1,0 +1,17 @@
+# pip-audit ignore-list for amorae-web. One vuln ID per line; # for
+# comments. pip-audit runs in --strict mode, so ANY finding not listed
+# here fails CI. Add entries only with a per-CVE justification.
+#
+# starlette 0.46.2 — transitive via fastapi==0.115.12 (which pins
+# starlette<0.47). The fixes land in starlette 0.47.2 / 0.49.1 / 1.x,
+# which require leaving the fastapi 0.11x line — a larger upgrade tracked
+# separately (mirrors yral-rishi-agent's accepted baseline). Accepted for
+# now: amorae runs behind Caddy + Cloudflare; the affected paths (multipart
+# parsing / large uploads) are not exercised by this text-only v1.
+PYSEC-2026-161
+PYSEC-2026-248
+PYSEC-2026-249
+CVE-2025-54121
+CVE-2025-62727
+CVE-2026-48817
+CVE-2026-48818

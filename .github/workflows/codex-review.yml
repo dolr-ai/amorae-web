@@ -1,0 +1,44 @@
+name: Codex Review
+
+# Mirrors yral-rishi-agent/.github/workflows/codex-review.yml with the
+# 2026-06-26 fix Session 6 hit: draft PRs never re-triggered Codex.
+#
+# The v2 version fires on [opened, synchronize] with an `if: draft==false`
+# guard. A PR OPENED as a draft never re-ran the review when later marked
+# ready, because `ready_for_review` was not in the trigger types — so the
+# guard-passing event never arrived. Adding `ready_for_review` here makes
+# "mark ready" fire the workflow (and the draft==false guard then passes).
+# Advisory only — never blocks merge.
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+    paths:
+      - "app/**"
+      - ".github/workflows/**"
+      - "migrations/**"
+      - "scripts/**"
+      - "tests/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install openai
+      - name: Run Codex review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_AMORAE_AI }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python .github/scripts/codex-review.py

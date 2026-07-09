@@ -1,0 +1,127 @@
+name: Security
+
+# Mirrors yral-rishi-agent/.github/workflows/security.yml.
+#   gitleaks  — any NEW finding fails CI. Baseline FPs in .gitleaks.toml.
+#   pip-audit — strict; fails on any finding not in pip-audit-ignore.txt.
+#   trivy     — HIGH+CRITICAL on the GHCR :stable tag fail CI (push only).
+# gitleaks binary invoked directly (the action needs a paid org license).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: gitleaks secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          VERSION="8.30.1"
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
+      - name: gitleaks detect (all history)
+        run: |
+          gitleaks detect \
+            --source . \
+            --config .gitleaks.toml \
+            --log-opts="--all" \
+            --redact \
+            --no-banner \
+            --report-format json \
+            --report-path gitleaks-report.json
+      - name: Upload gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          retention-days: 30
+
+  pip-audit:
+    name: pip-audit vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pip-audit
+        run: pip install pip-audit
+      - name: Run pip-audit
+        run: |
+          IGNORE_ARGS=""
+          while IFS= read -r line; do
+            line="${line%%#*}"
+            line="${line//[[:space:]]/}"
+            [ -z "$line" ] && continue
+            IGNORE_ARGS="$IGNORE_ARGS --ignore-vuln $line"
+          done < pip-audit-ignore.txt
+          echo "ignoring: $IGNORE_ARGS"
+          pip-audit \
+            -r requirements.txt \
+            --vulnerability-service osv \
+            --strict \
+            --format json \
+            --output pip-audit-report.json \
+            $IGNORE_ARGS
+      - name: Upload pip-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
+          retention-days: 30
+
+  trivy:
+    name: Trivy container scan
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Trivy scan (HIGH + CRITICAL fails CI)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: 'ghcr.io/dolr-ai/amorae-web:stable'
+          format: 'json'
+          output: 'trivy-report.json'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+          trivyignores: '.trivyignore'
+      - name: Trivy scan (FULL report including MEDIUM + LOW)
+        if: always()
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: 'ghcr.io/dolr-ai/amorae-web:stable'
+          format: 'table'
+          output: 'trivy-report-full.txt'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+          exit-code: '0'
+          ignore-unfixed: true
+      - name: Upload Trivy reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: |
+            trivy-report.json
+            trivy-report-full.txt
+          retention-days: 30

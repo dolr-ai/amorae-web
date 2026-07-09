@@ -1,0 +1,212 @@
+name: Deploy to production
+
+# Mirrors yral-rishi-agent/.github/workflows/deploy.yml. Auto-deploys on
+# every push to main (= every PR merge) via workflow_run after CI. Manual
+# button kept for emergencies.
+#
+# DIFFERENCE FROM v2: NO auto-migration step. amorae_db schema changes are
+# applied MANUALLY with pg_dump-first care (Rule 9) until a migration
+# runner is built for amorae. Deploying app code that needs a new column
+# therefore requires applying the migration by hand FIRST. This is
+# deliberate — the v2 auto-migrate machine (S3 pg_dump + schema_migrations
+# + leader-failover retry) is not yet ported, and a half-built one is worse
+# than manual care on a brand-new low-traffic DB.
+#
+# Safety nets: CI must pass (branch protection) · Codex advisory · /health
+# polled 2 min after deploy · auto-rollback on health failure · one deploy
+# at a time (concurrency lock).
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit SHA to deploy. Leave blank to deploy the latest main HEAD.'
+        required: false
+        default: ''
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-amorae-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/dolr-ai/amorae-web
+  # Swarm service name = <stack>_<service key> = amorae_web (stack `amorae`,
+  # key `web` in docker-compose.swarm.yml). deploy = docker service update.
+  SERVICE: amorae_web
+  HEALTH_URL: https://amorae.ai/health
+  ROLLBACK_WORKFLOW: rollback.yml
+  SWARM_MANAGER_1: 138.201.128.108
+  SWARM_MANAGER_2: 88.99.160.251
+  SWARM_MANAGER_3: 162.55.88.112
+  SWARM_USER: rishi-deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    permissions:
+      contents: read
+      packages: write
+      actions: write   # required to gh workflow run rollback.yml on health failure
+
+    steps:
+      - name: Checkout repo (for git rev-parse only)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Resolve commit SHA to deploy
+        id: resolve_sha
+        env:
+          MANUAL_SHA: ${{ inputs.sha }}
+          WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ -n "$MANUAL_SHA" ]; then
+            SHA="$MANUAL_SHA"
+          elif [ -n "$WORKFLOW_RUN_SHA" ]; then
+            SHA="$WORKFLOW_RUN_SHA"
+          else
+            git fetch origin main --quiet
+            SHA=$(git rev-parse origin/main)
+          fi
+          if ! echo "$SHA" | grep -qE '^[0-9a-f]{7,40}$'; then
+            echo "ERROR: '$SHA' does not look like a git SHA"
+            exit 1
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "image_ref=${{ env.IMAGE }}:$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Verify image exists in GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IMAGE_REF="${{ steps.resolve_sha.outputs.image_ref }}"
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          if docker manifest inspect "$IMAGE_REF" > /dev/null 2>&1; then
+            echo "✓ Image exists in GHCR"
+          else
+            echo "ERROR: image $IMAGE_REF not found in GHCR. Did CI finish building?"
+            exit 1
+          fi
+
+      - name: Set up SSH key + known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          for host in ${{ env.SWARM_MANAGER_1 }} ${{ env.SWARM_MANAGER_2 }} ${{ env.SWARM_MANAGER_3 }}; do
+            ssh-keyscan -T 10 -H "$host" >> ~/.ssh/known_hosts 2>/dev/null || true
+          done
+
+      - name: Deploy via first responding swarm manager
+        id: deploy
+        env:
+          IMAGE_REF: ${{ steps.resolve_sha.outputs.image_ref }}
+        run: |
+          DEPLOYED_VIA=""
+          for host in ${{ env.SWARM_MANAGER_1 }} ${{ env.SWARM_MANAGER_2 }} ${{ env.SWARM_MANAGER_3 }}; do
+            echo "── Trying swarm manager $host ──"
+            if ssh -i ~/.ssh/deploy_key \
+                   -o ConnectTimeout=15 \
+                   -o BatchMode=yes \
+                   -o StrictHostKeyChecking=yes \
+                   "${{ env.SWARM_USER }}@$host" \
+                   "set -e; docker service update --image $IMAGE_REF --update-order start-first --update-failure-action pause ${{ env.SERVICE }}"; then
+              echo "✓ Deploy command accepted by $host"
+              DEPLOYED_VIA="$host"
+              break
+            else
+              echo "✗ $host did not respond or rejected; trying next manager..."
+            fi
+          done
+          if [ -z "$DEPLOYED_VIA" ]; then
+            echo "ERROR: all 3 swarm managers failed. Check connectivity + SSH key."
+            exit 1
+          fi
+          echo "deployed_via=$DEPLOYED_VIA" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for /health to return 200
+        id: health_check
+        run: |
+          echo "Polling ${{ env.HEALTH_URL }} for up to 2 minutes..."
+          for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            STATUS=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "${{ env.HEALTH_URL }}" || echo "fail")
+            echo "attempt $i: /health → $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "✓ Service healthy after deploy"
+              echo "healthy=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "ERROR: /health did not return 200 within 2 minutes."
+          echo "healthy=false" >> "$GITHUB_OUTPUT"
+          exit 1
+
+      # Post-deploy smoke: health (already gated above) + the v2 valet-ticket
+      # single-use property, run ON a manager so X-Amorae-Secret stays in the
+      # cluster (the script execs inside the amorae_web container). ADVISORY —
+      # a v2-side ticket hiccup shouldn't roll back a healthy amorae image, so
+      # this never triggers the rollback (that stays gated on /health only).
+      - name: Post-deploy smoke — health + single-use ticket (advisory)
+        id: smoke
+        if: steps.health_check.outcome == 'success'
+        continue-on-error: true
+        run: |
+          for host in ${{ env.SWARM_MANAGER_1 }} ${{ env.SWARM_MANAGER_2 }} ${{ env.SWARM_MANAGER_3 }}; do
+            SSH="ssh -i ~/.ssh/deploy_key -o ConnectTimeout=15 -o BatchMode=yes -o StrictHostKeyChecking=yes ${{ env.SWARM_USER }}@$host"
+            $SSH true 2>/dev/null || { echo "· $host unreachable"; continue; }
+            scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
+              scripts/post-deploy-smoke.sh "${{ env.SWARM_USER }}@$host:/tmp/amorae-smoke.sh"
+            if $SSH "HEALTH_URL='${{ env.HEALTH_URL }}' bash /tmp/amorae-smoke.sh"; then
+              echo "✓ post-deploy smoke passed via $host"
+            else
+              echo "⚠ post-deploy smoke FAILED via $host (advisory — investigate; deploy NOT rolled back)"
+            fi
+            $SSH "rm -f /tmp/amorae-smoke.sh" 2>/dev/null || true
+            exit 0
+          done
+          echo "⚠ could not reach any manager to run post-deploy smoke"
+
+      - name: Auto-rollback if /health failed
+        if: failure() && steps.health_check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REASON="Auto-rollback: /health did not return 200 within 2 min after deploy of ${{ steps.resolve_sha.outputs.sha }} (triggered by ${{ github.actor }} via ${{ github.event_name }})"
+          gh workflow run ${{ env.ROLLBACK_WORKFLOW }} -f reason="$REASON" --ref main
+          echo "✓ Rollback workflow dispatched."
+
+      - name: Tag image as :stable after successful deploy
+        if: steps.health_check.outcome == 'success'
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          curl -sSL "https://github.com/google/go-containerregistry/releases/download/v0.20.2/go-containerregistry_Linux_x86_64.tar.gz" \
+            | sudo tar -xzC /usr/local/bin crane
+          echo "$GHCR_TOKEN" | crane auth login ghcr.io -u "${{ github.actor }}" --password-stdin
+          crane tag "${{ env.IMAGE }}:${{ steps.resolve_sha.outputs.sha }}" stable
+          echo "✓ ${{ env.IMAGE }}:stable now points at ${{ steps.resolve_sha.outputs.sha }}"
+
+      - name: Deploy summary
+        if: always()
+        run: |
+          echo "─── Deploy summary ───"
+          echo "Commit SHA:    ${{ steps.resolve_sha.outputs.sha }}"
+          echo "Image:         ${{ steps.resolve_sha.outputs.image_ref }}"
+          echo "Manager used:  ${{ steps.deploy.outputs.deployed_via }}"
+          echo "Health check:  ${{ steps.health_check.outcome }}"
+          if [ "${{ steps.health_check.outcome }}" = "failure" ]; then
+            echo "⚠️  /health failed → auto-rollback workflow was triggered."
+          else
+            echo "✅ Deploy succeeded."
+          fi

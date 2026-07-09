@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ bot.display_name }} · Amorae{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="hero" style="background-image:url('{{ bot.hero_image }}')"></div>
+
+  <div class="identity">
+    <h1>{{ bot.display_name }} <span class="verified" title="Verified">✔</span></h1>
+    <p class="handle">@{{ bot.handle }}</p>
+    <p class="tagline">{{ bot.tagline }}</p>
+  </div>
+
+  <div class="disclaimer">
+    <h2>Mature Content</h2>
+    <p>This page may contain graphic or adult content intended for adults only.
+       By continuing you confirm you are at least 18 years old.</p>
+  </div>
+
+  <form method="post" action="/{{ bot.handle }}/continue">
+    <input type="hidden" name="ticket" value="{{ ticket }}">
+    <button type="submit" class="cta">Continue (18+)</button>
+  </form>
+</section>
+{% endblock %}

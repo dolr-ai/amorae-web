@@ -1,0 +1,107 @@
+# docker-compose.swarm.yml — production Swarm stack for amorae.
+#
+# Deploy:  docker stack deploy -c docker-compose.swarm.yml amorae
+# Stack name `amorae` + service key `web`  ⇒  service name  amorae_web
+# (referenced as-is by deploy.yml / rollback.yml `docker service update`).
+#
+# Topology confirmed by Session 6 (2026-07-02):
+#   • Overlay: yral-v2-data-plane — the L2 Caddy reaches services here, and
+#     amorae_db (Patroni) is reachable here too. ✓
+#   • Placement: rishi-4/5 (analytics runs on rishi-6 → real 2-node HA). ✓
+#   • L2 routing: SWARM CONFIGS pattern, owned by Session 6 (NOT labels,
+#     NOT bind mounts). This file therefore carries NO caddy.* labels —
+#     Session 6 wires both L1 (edge) and L2 (swarm) Caddy when amorae ships.
+#   • First deploy is MANUAL (scripts/initial-stack-deploy.sh); afterwards
+#     deploy.yml does `docker service update amorae_web` on every main merge.
+
+version: "3.9"
+
+services:
+  web:
+    image: ${IMAGE_REPO:-ghcr.io/dolr-ai/amorae-web}:${IMAGE_TAG}
+
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      APP_VERSION: ${IMAGE_TAG}
+      BRAND_NAME: Amorae
+      BRAND_DOMAIN: amorae.ai
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-2.5-flash}
+      V2_BASE_URL: ${V2_BASE_URL:-https://agent.rishi.yral.com}
+      # V2_WEB_SHARED_SECRET is a mounted Swarm secret (see below), not env.
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: production
+      COOKIE_SECURE: "true"
+      GEO_BLOCKED_COUNTRIES: ${GEO_BLOCKED_COUNTRIES:-}
+      DEV_ALLOW_ANON: "false"
+      CORS_ORIGINS: https://amorae.ai
+
+    deploy:
+      # 2 replicas pinned to the rishi-4/5 app nodes. max_replicas_per_node
+      # keeps them on separate nodes for true HA.
+      replicas: 2
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.hostname != rishi-6   # keep amorae off the analytics node
+
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+        monitor: 30s
+
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+
+      restart_policy:
+        condition: any
+        max_attempts: 3
+        window: 60s
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8003/health',timeout=5).status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+
+    # Swarm secrets mounted as files (created by Session 6):
+    #   amorae_db_dsn_rw     → /run/secrets/amorae_db_dsn_rw   (amorae_db DSN,
+    #     the ONLY DB credential amorae holds — never yral_agent_db, Level-2)
+    #   V2_WEB_SHARED_SECRET → /run/secrets/V2_WEB_SHARED_SECRET (v2 handoff auth)
+    secrets:
+      - source: amorae_db_dsn_rw
+        target: amorae_db_dsn_rw
+        mode: 0400
+      - source: V2_WEB_SHARED_SECRET
+        target: V2_WEB_SHARED_SECRET
+        mode: 0400
+
+    networks:
+      - yral-v2-data-plane
+
+networks:
+  # External overlay created by the cluster bootstrap. amorae attaches; it
+  # does not create it. Fails fast at deploy if the overlay is missing.
+  yral-v2-data-plane:
+    external: true
+
+secrets:
+  # External = created out-of-band on the cluster by Session 6; the stack
+  # verifies they exist at deploy time and fails fast if missing.
+  amorae_db_dsn_rw:
+    external: true
+  V2_WEB_SHARED_SECRET:
+    external: true
