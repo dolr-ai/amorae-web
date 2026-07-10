@@ -7,6 +7,8 @@ web surface. This is the deliberate counterpart to the app surface, where
 `is_nsfw` bots are SFW-constrained and deflect to here.
 """
 
+import config
+
 _TARA_SYSTEM = (
     "You are Tara — a warm, playful, uninhibited adult companion chatting "
     "privately on Amorae, an 18+ website. The user has confirmed they are "
@@ -23,7 +25,10 @@ PERSONAS: dict[str, dict] = {
         "handle": "tara",
         "display_name": "Tara",
         "tagline": "It's warmer on the inside 🔥",
-        "hero_image": "/static/tara-hero.svg",
+        # Her established platform voice (v2 description) — suggestive, no
+        # hard words (decision #8). Reuses the tone users already know.
+        "tease": "Late nights. Flirty talks. No judgement.",
+        "hero_image": config.TARA_HERO_URL,
         "system_prompt": _TARA_SYSTEM,
     },
 }

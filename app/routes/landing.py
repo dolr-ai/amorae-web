@@ -17,7 +17,12 @@ router = APIRouter()
 
 
 @router.get("/{bot_handle}", response_class=HTMLResponse)
-async def landing(request: Request, bot_handle: str, t: str | None = None):
+async def landing(
+    request: Request,
+    bot_handle: str,
+    ticket: str | None = None,
+    t: str | None = None,
+):
     bot = personas.get(bot_handle)
     if not bot:
         raise HTTPException(status_code=404, detail="Not found")
@@ -32,10 +37,10 @@ async def landing(request: Request, bot_handle: str, t: str | None = None):
     if session and has_consent(request):
         return RedirectResponse(url=f"/{bot['handle']}/chat", status_code=303)
 
-    # `t` = the one-time valet ticket handed off by the app (§4.7). Held
-    # on the page and submitted with the Continue (18+) form so identity
-    # resolves at the moment of consent, not on mere page view.
+    # `ticket` (brief) or `t` (design §4.7) = the one-time valet ticket
+    # handed off by the app. Held on the page and submitted with the
+    # Continue (18+) form so identity resolves at consent, not on page view.
     return templates.TemplateResponse(
         "landing.html",
-        {"request": request, "bot": bot, "ticket": t or ""},
+        {"request": request, "bot": bot, "ticket": ticket or t or ""},
     )
