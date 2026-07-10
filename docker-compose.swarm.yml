@@ -4,9 +4,12 @@
 # Stack name `amorae` + service key `web`  ⇒  service name  amorae_web
 # (referenced as-is by deploy.yml / rollback.yml `docker service update`).
 #
-# Topology confirmed by Session 6 (2026-07-02):
-#   • Overlay: yral-v2-data-plane — the L2 Caddy reaches services here, and
-#     amorae_db (Patroni) is reachable here too. ✓
+# Topology confirmed by Session 6 (2026-07-02, corrected 2026-07-10):
+#   • Overlay: yral-v2-data-plane — amorae_db (Patroni) is reachable here. ✓
+#   • Overlay: yral-v2-internal — the L2 swarm-edge Caddy
+#     (yral-v2-edge-caddy_caddy-edge-ingress) lives on this network. amorae_web
+#     MUST attach here too so L2 can route amorae.ai → amorae_web:8003.
+#     Without it, L2 has no route and amorae.ai/health returns 503.
 #   • Placement: rishi-4/5 (analytics runs on rishi-6 → real 2-node HA). ✓
 #   • L2 routing: SWARM CONFIGS pattern, owned by Session 6 (NOT labels,
 #     NOT bind mounts). This file therefore carries NO caddy.* labels —
@@ -95,12 +98,19 @@ services:
         mode: 0444
 
     networks:
+      # yral-v2-data-plane: reach amorae_db (Patroni).
+      # yral-v2-internal:   reach / be reached by the L2 swarm-edge Caddy
+      #                     (yral-v2-edge-caddy_caddy-edge-ingress), which
+      #                     terminates amorae.ai and forwards to amorae_web:8003.
       - yral-v2-data-plane
+      - yral-v2-internal
 
 networks:
-  # External overlay created by the cluster bootstrap. amorae attaches; it
-  # does not create it. Fails fast at deploy if the overlay is missing.
+  # External overlays created by the cluster bootstrap. amorae attaches; it
+  # does not create them. Fails fast at deploy if either is missing.
   yral-v2-data-plane:
+    external: true
+  yral-v2-internal:
     external: true
 
 secrets:
