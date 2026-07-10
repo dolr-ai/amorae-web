@@ -82,12 +82,17 @@ services:
     #     the ONLY DB credential amorae holds — never yral_agent_db, Level-2)
     #   V2_WEB_SHARED_SECRET → /run/secrets/V2_WEB_SHARED_SECRET (v2 handoff auth)
     secrets:
+      # mode: 0444 (world-readable) so the container's non-root `appuser`
+      # (UID 1001, see Dockerfile) can read them. Default mode: 0400 owned by
+      # root:root causes PermissionError on startup. World-readable is safe
+      # here — the secret file only exists inside this container's tmpfs; no
+      # other principal shares the mount namespace.
       - source: amorae_db_dsn_rw
         target: amorae_db_dsn_rw
-        mode: 0400
+        mode: 0444
       - source: V2_WEB_SHARED_SECRET
         target: V2_WEB_SHARED_SECRET
-        mode: 0400
+        mode: 0444
 
     networks:
       - yral-v2-data-plane
