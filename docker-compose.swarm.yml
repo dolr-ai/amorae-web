@@ -51,7 +51,15 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
-        order: start-first
+        # stop-first (not start-first): with replicas=2 + max_replicas_per_node=1
+        # + only 2 eligible nodes (rishi-4/5), start-first can't schedule the
+        # new task — both eligible nodes are already at capacity for this
+        # service, and Swarm won't co-locate. Deadlock is the failure mode
+        # (confirmed 2026-07-10 during the overlay-drift fix — required a
+        # `docker service rollback` to recover). stop-first briefly drops
+        # to 1/2 during the roll on a single node, which is fine — the other
+        # replica keeps serving traffic through the L2 Caddy.
+        order: stop-first
         failure_action: rollback
         monitor: 30s
 
