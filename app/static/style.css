@@ -28,15 +28,22 @@ body {
   box-shadow: 0 20px 60px rgba(0,0,0,.45);
 }
 .hero {
-  height: 260px;
-  background-size: cover; background-position: center;
+  position: relative;
+  height: 380px;
+  background-size: cover; background-position: center top;
   background-color: #3a1a33;
 }
-.identity { padding: 18px 20px 4px; }
-.identity h1 { margin: 0; font-size: 26px; }
-.verified { color: var(--rose); font-size: 18px; }
-.handle { margin: 2px 0; color: var(--muted); }
-.tagline { margin: 8px 0 0; font-size: 17px; }
+.hero-fade {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 45%, rgba(39,20,39,.35) 70%, var(--card) 100%);
+}
+.hero-name { position: absolute; left: 20px; bottom: 12px; right: 20px; }
+.hero-name h1 { margin: 0; font-size: 28px; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
+.verified { color: var(--rose-2); font-size: 20px; }
+.handle { margin: 2px 0 0; color: var(--rose-2); font-weight: 500; }
+.identity { padding: 14px 20px 2px; }
+.tagline { margin: 0; font-size: 18px; }
+.tease { margin: 8px 0 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
 .disclaimer { padding: 16px 20px; }
 .disclaimer h2 { margin: 0 0 6px; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; color: var(--rose-2); }
 .disclaimer p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }

@@ -2,17 +2,22 @@
 {% block title %}{{ bot.display_name }} · Amorae{% endblock %}
 {% block content %}
 <section class="card">
-  <div class="hero" style="background-image:url('{{ bot.hero_image }}')"></div>
+  <div class="hero" style="background-image:url('{{ bot.hero_image }}')">
+    <div class="hero-fade"></div>
+    <div class="hero-name">
+      <h1>{{ bot.display_name }} <span class="verified" title="Verified">✔</span></h1>
+      <p class="handle">@{{ bot.handle }}</p>
+    </div>
+  </div>
 
   <div class="identity">
-    <h1>{{ bot.display_name }} <span class="verified" title="Verified">✔</span></h1>
-    <p class="handle">@{{ bot.handle }}</p>
     <p class="tagline">{{ bot.tagline }}</p>
+    <p class="tease">{{ bot.tease }}</p>
   </div>
 
   <div class="disclaimer">
     <h2>Mature Content</h2>
-    <p>This page may contain graphic or adult content intended for adults only.
+    <p>This page may contain adult themes intended for adults only.
        By continuing you confirm you are at least 18 years old.</p>
   </div>
 
