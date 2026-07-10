@@ -49,12 +49,10 @@ BRAND_NAME = _env("BRAND_NAME", "Amorae")
 BRAND_DOMAIN = _env("BRAND_DOMAIN", "amorae.ai")
 
 # Tara's hero photo. Served LOCALLY from static (`img-src 'self'` in the L1
-# CSP blocks the external Hetzner URL), seeded from her real v2 avatar
-# (Companion bot 7n76l…xqe). Env-overridable so Session 6 can swap it — but
-# any override MUST be `self` or a CSP img-src allowlisted origin
-# (self, data:, replicate.delivery, gateway.storjshare.io). NOTE: several v2
-# bots are named "Tara"; confirm the canonical is_nsfw bot with Session 6
-# (matters for the PR3 context-seed mapping).
+# CSP blocks external URLs), seeded from the CANONICAL spicy-Tara's real v2
+# avatar — the ONLY is_nsfw=true Tara (name=taaarraaah, id qi6gd…5qe, 54k
+# convs, Rishi's original 2026-01-13). Env-overridable, but any override MUST
+# be `self` or a CSP img-src allowlisted origin.
 TARA_HERO_URL = _env("TARA_HERO_URL", "/static/tara.jpg")
 
 # LLM — reuse the SAME provider/model as v2's `user_chat_main_nsfw`

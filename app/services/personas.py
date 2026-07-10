@@ -25,8 +25,9 @@ PERSONAS: dict[str, dict] = {
         "handle": "tara",
         "display_name": "Tara",
         "tagline": "It's warmer on the inside 🔥",
-        # Suggestive, never explicit — the "no hard words" tease (decision #8).
-        "tease": "I've been hoping you'd find me 😏 Let's talk somewhere a little more private…",
+        # Her established platform voice (v2 description) — suggestive, no
+        # hard words (decision #8). Reuses the tone users already know.
+        "tease": "Late nights. Flirty talks. No judgement.",
         "hero_image": config.TARA_HERO_URL,
         "system_prompt": _TARA_SYSTEM,
     },
