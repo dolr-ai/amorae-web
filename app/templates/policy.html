@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ policy.title }} · {{ brand }}{% endblock %}
+{% block content %}
+<article class="prose legal">
+  <nav class="legal-nav" aria-label="Policies">
+    {% for item in policy_nav %}
+    <a href="/legal/{{ item.slug }}" class="{% if item.slug == policy.slug %}is-current{% endif %}">{{ item.title }}</a>
+    {% endfor %}
+  </nav>
+
+  <h1>{{ policy.title }}</h1>
+  <p class="legal-summary">{{ policy.summary }}</p>
+  <p class="legal-meta">Last updated {{ policy.updated }}
+    {% if not policy.approved %}· <span class="legal-draft">DRAFT — pending legal review</span>{% endif %}
+  </p>
+
+  {% for kind, value in policy.blocks %}
+    {% if kind == "h2" %}<h2>{{ value }}</h2>
+    {% elif kind == "p" %}<p>{{ value }}</p>
+    {% elif kind == "ul" %}<ul>{% for item in value %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% elif kind == "note" %}<div class="legal-note">{{ value }}</div>
+    {% endif %}
+  {% endfor %}
+
+  <p class="legal-contact">
+    Questions about this policy? Contact
+    {% if support_email %}<a href="mailto:{{ support_email }}">{{ support_email }}</a>{% else %}our support team{% endif %}
+    · <a href="/support">Support</a> · <a href="/report">Report content</a>
+  </p>
+</article>
+{% endblock %}

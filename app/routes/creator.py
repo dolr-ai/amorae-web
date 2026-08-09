@@ -18,7 +18,7 @@ stops at recorded intent. That is also the metric the pilot actually needs —
 import logging
 
 from fastapi import APIRouter, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 import config
 from services import age_gate, geo, personas
@@ -148,6 +148,7 @@ async def subscribe_intent(
     handle: str,
     tier: str = Form("quarterly"),
     rail: str = Form("card"),
+    consent: str = Form(""),
 ):
     """Records that someone tried to pay, and shows them where we are.
 
@@ -172,12 +173,20 @@ async def subscribe_intent(
             },
         )
 
+    # Recurring-billing consent is required to proceed (CCBill item 4). The
+    # client disables the button without it; enforce server-side too, and send
+    # the user back to the checkout rather than recording a consent-less intent.
+    if consent != "on":
+        return RedirectResponse(
+            url=f"/c/{persona['handle']}/subscribe?e=consent", status_code=303
+        )
+
     session = await current_session(request)
 
     # Structured so it is greppable in Sentry/logs before there is a table
     # worth writing to. Deliberately carries no adult content.
     logger.info(
-        "subscribe_intent handle=%s tier=%s rail=%s logged_in=%s",
+        "subscribe_intent handle=%s tier=%s rail=%s consent=yes logged_in=%s",
         persona["handle"],
         tier,
         rail,

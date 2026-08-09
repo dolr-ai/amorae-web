@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Support · {{ brand }}{% endblock %}
+{% block content %}
+<article class="prose legal">
+  <h1>Support & Contact</h1>
+  <p class="legal-summary">We aim to respond to every request within 2 business days.</p>
+
+  <div class="support-grid">
+    <div class="support-card">
+      <h2>Email us</h2>
+      <p>
+        {% if support_email %}
+        <a href="mailto:{{ support_email }}">{{ support_email }}</a>
+        {% else %}
+        <span class="legal-draft">support email — to be completed</span>
+        {% endif %}
+      </p>
+      <p class="muted">Operated by {{ entity }}.</p>
+    </div>
+
+    <div class="support-card">
+      <h2>Billing & payments</h2>
+      <p>Charges appear on your statement as <strong>{{ descriptor }}</strong>.</p>
+      <p>For payment or subscription questions you can also use our payment
+         processor's consumer billing support:</p>
+      <p><a href="{{ ccbill_support }}" rel="noopener">{{ ccbill_support }}</a></p>
+    </div>
+
+    <div class="support-card">
+      <h2>Cancel a subscription</h2>
+      <p>Cancel any time — it stops the next renewal and you keep access until
+         the period ends. See the <a href="/legal/refunds">Refund &amp;
+         Cancellation Policy</a> for the exact steps.</p>
+    </div>
+
+    <div class="support-card">
+      <h2>Report content</h2>
+      <p>To report content for removal (including copyright or non-consensual
+         imagery), use the <a href="/report">report form</a> or see our
+         <a href="/legal/dmca">DMCA &amp; Content Removal</a> policy.</p>
+    </div>
+  </div>
+
+  <h2>Send us a message</h2>
+  {% if sent %}
+  <div class="legal-note">Thanks — your message has been received. We'll reply
+    {% if support_email %}to your email{% else %}as soon as we can{% endif %}.</div>
+  {% else %}
+  <form method="post" action="/support" class="report-form">
+    <label>Your email
+      <input type="email" name="email" placeholder="you@example.com" autocomplete="email">
+    </label>
+    <label>Subject
+      <input type="text" name="subject" placeholder="How can we help?">
+    </label>
+    <label>Message
+      <textarea name="message" rows="5" required></textarea>
+    </label>
+    <button type="submit">Send message</button>
+  </form>
+  {% endif %}
+</article>
+{% endblock %}

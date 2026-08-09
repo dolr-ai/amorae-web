@@ -17,25 +17,46 @@
   <main class="wrap">
     {% block content %}{% endblock %}
   </main>
-  <footer class="footer">
-    <a href="/">Discover</a>
-    <span>·</span>
-    <a href="/privacy">Privacy</a>
-    <span>·</span>
-    <a href="/terms">Terms</a>
-    <span>·</span>
-    <a href="/report">Report</a>
-    {# This claim covers the WHOLE surface, feed included: the video service
-       only ever delivers AI-generated content, so no real performer appears
-       anywhere on the site. It is also the sentence in the CCBill/Segpay
-       underwriting pack — if the feed ever starts carrying human-filmed
-       video, this line has to change before that ships. #}
+
+  <footer class="footer site-footer">
+    <div class="footer-warn">🔞 Adults only — this site contains sexually explicit,
+      AI-generated content intended for adults 18+.</div>
+
+    <nav class="footer-links" aria-label="Policies">
+      <a href="/">Discover</a>
+      <a href="/legal/terms">Terms</a>
+      <a href="/legal/privacy">Privacy</a>
+      <a href="/legal/cookies">Cookies</a>
+      <a href="/legal/refunds">Refunds &amp; Cancellation</a>
+      <a href="/legal/chargebacks">Billing &amp; Disputes</a>
+      <a href="/legal/dmca">DMCA</a>
+      <a href="/legal/2257">2257</a>
+      <a href="/legal/aup">Acceptable Use</a>
+      <a href="/support">Support</a>
+      <a href="/report">Report</a>
+    </nav>
+
     <p class="footer-legal">
       All personas on {{ brand|default("Amorae") }} are AI-generated. No real
-      performers appear on this site — see our
-      <a href="/terms">2257 statement</a>.
+      performers appear on this site — see our <a href="/legal/2257">2257 statement</a>.
+    </p>
+    <p class="footer-entity">
+      {{ legal_entity|default("GoBazzinga Inc") }}{% if legal_country %} · {{ legal_country }}{% endif %}{% if legal_address %} · {{ legal_address }}{% endif %}
+      {% if support_email %}· <a href="mailto:{{ support_email }}">{{ support_email }}</a>{% endif %}
     </p>
   </footer>
   {% endblock %}
+
+  {# Cookie consent — shown until a choice is stored. Strictly-necessary
+     cookies always run; analytics stay off until "Accept". CCBill item 7. #}
+  <div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Cookie consent" hidden>
+    <p>We use strictly-necessary cookies to run the site, and optional analytics
+       only if you accept. See our <a href="/legal/cookies">Cookie Policy</a>.</p>
+    <div class="cookie-actions">
+      <button type="button" class="btn btn-sm btn-ghost" data-cookie="decline">Decline</button>
+      <button type="button" class="btn btn-sm btn-primary" data-cookie="accept">Accept</button>
+    </div>
+  </div>
+  <script src="/static/cookies.js" defer></script>
 </body>
 </html>

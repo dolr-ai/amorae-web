@@ -14,12 +14,15 @@
     </div>
   </header>
 
-  <form method="post" action="/c/{{ bot.handle }}/subscribe" class="checkout-form">
-    <h2 class="section-title">Choose a plan</h2>
+  <form method="post" action="/c/{{ bot.handle }}/subscribe" class="checkout-form" id="checkout-form">
+    <h2 class="section-title">1 · Choose a plan</h2>
     <div class="plan-list">
       {% for tier in tiers %}
       <label class="plan {% if tier.selected %}is-selected{% endif %}">
-        <input type="radio" name="tier" value="{{ tier.id }}" {% if tier.selected %}checked{% endif %}>
+        <input type="radio" name="tier" value="{{ tier.id }}" {% if tier.selected %}checked{% endif %}
+               data-permonth="{{ '%.2f'|format(tier.per_month_cents / 100) }}"
+               data-total="{{ '%.2f'|format(tier.total_cents / 100) }}"
+               data-months="{{ tier.months }}">
         <span class="plan-main">
           <span class="plan-label">{{ tier.label }}</span>
           <span class="plan-blurb">{{ tier.blurb }}</span>
@@ -33,28 +36,71 @@
       {% endfor %}
     </div>
 
-    <h2 class="section-title">Payment method</h2>
+    {# CCBill items 2 + 4: full price + rebill terms + explicit auto-renew
+       language, shown BEFORE the payment step. #}
+    <div class="billing-terms" id="billing-terms">
+      <h2 class="section-title">2 · Billing terms</h2>
+      <ul class="billing-facts">
+        <li><span>What you pay today</span><strong id="bt-total">$0.00</strong></li>
+        <li><span>Then renews</span><strong id="bt-rebill">automatically</strong></li>
+        <li><span>Effective price</span><strong id="bt-permonth">$0.00/mo</strong></li>
+        <li><span>On your statement</span><strong>{{ billing_descriptor }}</strong></li>
+        <li><span>Cancel</span><strong>any time — <a href="/legal/refunds">how to cancel</a></strong></li>
+      </ul>
+      <p class="billing-note">
+        This is a <strong>recurring subscription</strong>. Your payment method
+        will be charged the amount above today and then automatically re-billed
+        each period at the same rate until you cancel. You can cancel at any
+        time to stop the next renewal; see our
+        <a href="/legal/refunds">Refund &amp; Cancellation Policy</a>.
+      </p>
+    </div>
+
+    <h2 class="section-title">3 · Payment method</h2>
     <div class="rail-list">
       <label class="rail-opt is-selected">
-        <input type="radio" name="rail" value="crypto" checked>
-        <span class="rail-name">USDC / crypto</span>
-        <span class="rail-note">Available first · no chargebacks</span>
-      </label>
-      <label class="rail-opt is-disabled">
-        <input type="radio" name="rail" value="card" disabled>
+        <input type="radio" name="rail" value="card" checked>
         <span class="rail-name">Card</span>
-        <span class="rail-note">In processor underwriting</span>
+        <span class="rail-note">Secure checkout via our payment processor</span>
+      </label>
+      <label class="rail-opt">
+        <input type="radio" name="rail" value="crypto">
+        <span class="rail-name">USDC / crypto</span>
+        <span class="rail-note">No chargebacks</span>
       </label>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button>
+    {# The labelled payment step CCBill's reviewer looks for. The processor's
+       hosted form mounts here after approval; until then it's clearly a
+       placeholder, not a fake card field (we never collect card data
+       ourselves — prohibited). #}
+    <div class="payment-mount" aria-label="Secure payment">
+      <div class="payment-lock">🔒 Secure payment</div>
+      <p>Card details are entered on our PCI-compliant payment processor's
+         secure form. {{ brand }} never sees or stores your full card number.</p>
+      <div class="payment-placeholder">Payment form loads here at checkout</div>
+    </div>
+
+    {# CCBill item 4 + B: explicit consent to recurring billing AND to the
+       policies, captured as a required checkbox before the button enables. #}
+    <label class="consent-row">
+      <input type="checkbox" name="consent" id="consent" required>
+      <span>I am 18+, I agree to the <a href="/legal/terms">Terms</a>,
+        <a href="/legal/refunds">Refund Policy</a> and
+        <a href="/legal/privacy">Privacy Policy</a>, and I authorise this
+        <strong>recurring charge</strong> until I cancel.</span>
+    </label>
+
+    <button type="submit" class="btn btn-primary btn-lg btn-block" id="checkout-submit" disabled>
+      Continue to secure payment
+    </button>
 
     <p class="checkout-fineprint">
-      Billed discreetly. Recurring until cancelled — cancel any time from your
-      account. By subscribing you confirm you are 18+ and accept our
-      <a href="/terms">Terms</a>. All personas are AI-generated; no real
-      performers appear on this site.
+      Billed by {{ legal_entity }} as <strong>{{ billing_descriptor }}</strong>.
+      Recurring until cancelled. All personas are AI-generated; no real
+      performers appear on this site. Need help? <a href="/support">Support</a>.
     </p>
   </form>
 </section>
+<script src="/static/checkout.js" defer></script>
 {% endblock %}

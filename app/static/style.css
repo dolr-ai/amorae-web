@@ -511,3 +511,116 @@ form { padding: 16px 20px 24px; }
   }
   .feed { scroll-behavior: auto; }
 }
+
+/* --------------------------------------------------------------------------
+   Legal / policy pages
+   -------------------------------------------------------------------------- */
+.legal { max-width: 720px; }
+.legal-nav {
+  display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 26px;
+  padding-bottom: 16px; border-bottom: 1px solid var(--line);
+}
+.legal-nav a {
+  font-size: 13px; padding: 6px 12px; border-radius: 999px;
+  text-decoration: none; color: var(--muted);
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--line);
+}
+.legal-nav a:hover { color: var(--text); border-color: var(--rose); }
+.legal-nav a.is-current { color: #fff; background: var(--rose); border-color: var(--rose); }
+.legal-summary { font-size: 16px; color: var(--rose-2); margin: 0 0 6px; }
+.legal-meta { font-size: 13px; color: var(--muted); margin: 0 0 24px; }
+.legal-draft {
+  color: var(--gold); font-weight: 600;
+  background: rgba(245, 195, 107, .12); padding: 2px 8px; border-radius: 6px;
+}
+.legal h2 { font-size: 18px; margin: 26px 0 8px; color: var(--text); }
+.legal p, .legal li { color: #d8c6d2; line-height: 1.65; }
+.legal ul { padding-left: 20px; }
+.legal li { margin: 6px 0; }
+.legal-note {
+  margin: 18px 0; padding: 14px 16px; border-radius: 12px;
+  background: rgba(255, 77, 126, .08); border: 1px solid rgba(255, 77, 126, .25);
+  color: var(--rose-2); font-size: 14.5px; line-height: 1.6;
+}
+.legal-contact { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; }
+.legal-contact a, .legal a { color: var(--rose-2); }
+
+/* Support */
+.support-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px; margin: 20px 0 8px;
+}
+.support-card {
+  padding: 16px 18px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--line);
+}
+.support-card h2 { margin: 0 0 8px; font-size: 15px; }
+.support-card p { margin: 4px 0; font-size: 14px; }
+
+/* --------------------------------------------------------------------------
+   Billing transparency (checkout)
+   -------------------------------------------------------------------------- */
+.billing-terms {
+  margin: 8px 0 4px; padding: 16px 18px; border-radius: 14px;
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--line);
+}
+.billing-facts { list-style: none; margin: 0 0 12px; padding: 0; }
+.billing-facts li {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.billing-facts li:last-child { border-bottom: 0; }
+.billing-facts span { color: var(--muted); }
+.billing-facts strong { text-align: right; }
+.billing-facts a { color: var(--rose-2); }
+.billing-note { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0; }
+.billing-note a { color: var(--rose-2); }
+
+.payment-mount {
+  margin: 4px 0; padding: 18px; border-radius: 14px;
+  background: var(--card); border: 1px dashed rgba(255, 255, 255, .22);
+  text-align: center;
+}
+.payment-lock { font-weight: 600; margin-bottom: 6px; }
+.payment-mount p { font-size: 13px; color: var(--muted); margin: 0 auto 12px; max-width: 380px; line-height: 1.5; }
+.payment-placeholder {
+  padding: 22px; border-radius: 10px; color: var(--muted); font-size: 13px;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.03), rgba(255,255,255,.03) 10px, transparent 10px, transparent 20px);
+  border: 1px solid var(--line);
+}
+
+.consent-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin: 18px 0; font-size: 13.5px; line-height: 1.5; color: #d8c6d2;
+}
+.consent-row input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--rose); flex-shrink: 0; }
+.consent-row a { color: var(--rose-2); }
+#checkout-submit:disabled { opacity: .5; cursor: not-allowed; }
+
+/* --------------------------------------------------------------------------
+   Site footer (policies on every page) + cookie banner
+   -------------------------------------------------------------------------- */
+.site-footer { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.footer-warn { font-size: 12.5px; color: var(--rose-2); font-weight: 500; }
+.footer-links {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 2px;
+  max-width: 720px;
+}
+.footer-links a { color: var(--muted); text-decoration: none; padding: 2px 6px; font-size: 12.5px; }
+.footer-links a:hover { color: var(--rose-2); }
+.footer-entity { font-size: 11.5px; color: #715b69; margin: 4px 0 0; text-align: center; }
+.footer-entity a { color: #715b69; }
+
+.cookie-banner {
+  position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 60;
+  max-width: 640px; margin: 0 auto;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  padding: 14px 18px; border-radius: 14px;
+  background: rgba(28, 15, 33, .97); border: 1px solid var(--line);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .5);
+  backdrop-filter: blur(10px);
+}
+.cookie-banner p { margin: 0; flex: 1; min-width: 220px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.cookie-banner a { color: var(--rose-2); }
+.cookie-actions { display: flex; gap: 8px; }

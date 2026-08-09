@@ -48,6 +48,31 @@ PORT = _env_int(
 BRAND_NAME = _env("BRAND_NAME", "Amorae")
 BRAND_DOMAIN = _env("BRAND_DOMAIN", "amorae.ai")
 
+# ---------------------------------------------------------------------------
+# Legal entity & merchant details (CCBill/Segpay approval)
+# ---------------------------------------------------------------------------
+# The processor reviews these on the live site, so they render in the footer,
+# the policy pages and the checkout. Every value below is env-overridable; the
+# ones marked RISHI are placeholders that MUST be set to real values before the
+# merchant application goes in. Legal copy is DRAFT until counsel signs off.
+#
+# HARD REQUIREMENT (CCBill onboarding): the business must be registered in
+# US / CA / UK / EU. LEGAL_ENTITY_COUNTRY must be one of those.
+LEGAL_ENTITY = _env("LEGAL_ENTITY", "GoBazzinga Inc")
+LEGAL_ENTITY_COUNTRY = _env("LEGAL_ENTITY_COUNTRY", "")  # RISHI: US/CA/UK/EU
+LEGAL_ENTITY_ADDRESS = _env("LEGAL_ENTITY_ADDRESS", "")  # RISHI: registered address
+SUPPORT_EMAIL = _env("SUPPORT_EMAIL", "")  # RISHI: monitored support inbox
+# What appears on the customer's card statement. A discreet descriptor lowers
+# chargebacks; CCBill assigns/approves the final string. RISHI: confirm.
+BILLING_DESCRIPTOR = _env("BILLING_DESCRIPTOR", "AMORAE.AI")
+# CCBill's own consumer billing-support portal (stable URL, safe default).
+CCBILL_SUPPORT_URL = _env("CCBILL_SUPPORT_URL", "https://support.ccbill.com")
+# Flips the "DRAFT — pending legal review" banner off once counsel signs off.
+LEGAL_COPY_APPROVED = _env_bool("LEGAL_COPY_APPROVED", False)
+# 2257 records custodian (for AI-only content we state no real performers, but
+# still name a custodian + address as processors expect the section present).
+RECORDS_CUSTODIAN = _env("RECORDS_CUSTODIAN", LEGAL_ENTITY)
+
 # Tara's hero photo. Served LOCALLY from static (`img-src 'self'` in the L1
 # CSP blocks external URLs), seeded from the CANONICAL spicy-Tara's real v2
 # avatar — the ONLY is_nsfw=true Tara (name=taaarraaah, id qi6gd…5qe, 54k
