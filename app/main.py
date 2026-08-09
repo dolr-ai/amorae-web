@@ -42,6 +42,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def content_security_policy(request, call_next):
+    """Send our own CSP so policy changes ship with the code that needs them.
+
+    Applies to static files too — the mount is inside the middleware stack —
+    so `/static/*` carries the same policy the pages do.
+
+    `setdefault` rather than assignment: if a route ever needs its own
+    stricter policy it can set one and this will not stamp over it.
+    """
+    response = await call_next(request)
+    response.headers.setdefault(
+        "Content-Security-Policy", config.CONTENT_SECURITY_POLICY
+    )
+    return response
+
+
 _STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 

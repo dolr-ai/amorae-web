@@ -146,6 +146,50 @@ AGE_VERIFICATION_COUNTRIES = [
     if c.strip()
 ]
 
+# ---------------------------------------------------------------------------
+# Content Security Policy
+# ---------------------------------------------------------------------------
+# Owned HERE rather than at the Caddy edge, so a policy change ships with the
+# code that needs it instead of needing a cross-team edge round-trip (the
+# media-src fix on 2026-08-09 cost exactly that).
+#
+# The media/image origins are DERIVED from MEDIA_CDN_BASE, so moving Amorae to
+# its own adult-designated CDN updates the policy automatically — one env var,
+# not two edits that can drift apart.
+#
+# Migration note: while the edge ALSO sends a CSP, browsers enforce the
+# intersection of both headers. So shipping this is safe in either order and
+# can only tighten, never loosen. `frame-ancestors 'none'` is deliberately
+# duplicated here and at the edge — clickjacking protection should not depend
+# on this app being correct.
+_CSP_IMG_EXTRA = _env(
+    "CSP_IMG_EXTRA", "https://replicate.delivery https://gateway.storjshare.io"
+)
+
+
+def _build_csp() -> str:
+    media = MEDIA_CDN_BASE.rstrip("/")
+    img = " ".join(part for part in ["'self'", "data:", _CSP_IMG_EXTRA, media] if part)
+    return "; ".join(
+        [
+            "default-src 'self'",
+            # 'unsafe-inline' is inherited from the edge policy. Nothing we
+            # ship needs it (feed.js and chat.js are external files) — worth
+            # dropping, but as its own change with its own verification.
+            "script-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline'",
+            f"img-src {img}",
+            f"media-src 'self' {media}",
+            "connect-src 'self'",
+            "frame-ancestors 'none'",
+            "base-uri 'none'",
+            "form-action 'self'",
+        ]
+    )
+
+
+CONTENT_SECURITY_POLICY = _env("CONTENT_SECURITY_POLICY", _build_csp())
+
 # CORS
 CORS_ORIGINS = _env("CORS_ORIGINS", "*")
 
