@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ bot.display_name }} (@{{ bot.handle }}) · {{ brand }}{% endblock %}
+{% block body_class %}profile-body{% endblock %}
+
+{% block content %}
+<article class="profile">
+
+  <header class="profile-hero">
+    <div class="profile-cover" style="background-image:url('{{ bot.hero_image }}')"></div>
+    <div class="profile-cover-fade" aria-hidden="true"></div>
+    <a class="profile-back" href="/" aria-label="Back to feed">&larr;</a>
+
+    <div class="profile-id">
+      <img class="profile-avatar" src="{{ bot.avatar_image }}" alt="" width="88" height="88">
+      <div class="profile-idtext">
+        <h1>{{ bot.display_name }} <span class="verified" title="Verified">✔</span></h1>
+        <p class="profile-handle">@{{ bot.handle }}</p>
+      </div>
+      <span class="status-dot" title="Active recently"></span>
+    </div>
+  </header>
+
+  <section class="profile-body-inner">
+    <p class="profile-tagline">{{ bot.tagline }}</p>
+    <p class="profile-bio">{{ bot.bio }}</p>
+    <p class="profile-meta">
+      <span>📍 {{ bot.location }}</span>
+      <span>·</span>
+      <span>AI persona</span>
+    </p>
+
+    <div class="profile-actions">
+      <a class="btn btn-primary btn-lg" href="/{{ bot.handle }}">
+        Chat with {{ bot.display_name }}
+      </a>
+      <a class="btn btn-glass btn-lg" href="/c/{{ bot.handle }}/subscribe">Subscribe</a>
+    </div>
+
+    {# Trust block. An adult site that doesn't say this up front reads as a
+       scrape farm, and processors ask for it in underwriting anyway. #}
+    <ul class="trust-row">
+      <li>🤖 AI-generated — no real performers</li>
+      <li>🔒 Discreet billing descriptor</li>
+      <li>✋ Cancel any time</li>
+    </ul>
+
+    <h2 class="section-title">Subscription</h2>
+    <div class="tier-grid">
+      {% for tier in tiers %}
+      <a class="tier {% if tier.discount_pct %}tier-deal{% endif %}"
+         href="/c/{{ bot.handle }}/subscribe?tier={{ tier.id }}">
+        {% if tier.discount_pct %}<span class="tier-badge">−{{ tier.discount_pct }}%</span>{% endif %}
+        <span class="tier-label">{{ tier.label }}</span>
+        <span class="tier-price">${{ '%.2f'|format(tier.per_month_cents / 100) }}<small>/mo</small></span>
+        <span class="tier-total">${{ '%.2f'|format(tier.total_cents / 100) }} billed once</span>
+        <span class="tier-blurb">{{ tier.blurb }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <h2 class="section-title">Content</h2>
+    {# Locked grid: the paywall is the product, so the tease has to be real —
+       blurred posters with a count, not empty boxes. Media wiring lands when
+       the per-creator content endpoint exists (see the web contract doc). #}
+    <div class="content-grid">
+      {% for i in range(9) %}
+      <div class="content-cell {% if i > 1 %}is-locked{% endif %}">
+        <div class="content-thumb" style="background-image:url('{{ bot.hero_image }}')"></div>
+        {% if i > 1 %}
+        <span class="content-lock" aria-hidden="true">🔒</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <p class="content-note">
+      <a href="/c/{{ bot.handle }}/subscribe">Subscribe</a> to unlock
+      {{ bot.display_name }}'s full library.
+    </p>
+  </section>
+</article>
+{% endblock %}

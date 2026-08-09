@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}18+ · {{ brand }}{% endblock %}
+{% block body_class %}gate-body{% endblock %}
+
+{% block content %}
+{# Nothing adult renders on this page — no feed markup, no media URLs, no
+   persona photography. A visitor who fails the gate must never have been
+   sent the content in the first place. #}
+<section class="gate">
+  <div class="gate-mark">{{ brand }}</div>
+
+  <h1 class="gate-title">This site is for adults</h1>
+  <p class="gate-lede">
+    {{ brand }} contains sexually explicit material intended for adults only.
+    Every persona here is AI-generated — no real performers appear on this
+    site.
+  </p>
+
+  <ul class="gate-terms">
+    <li>I am at least 18 years old (or the age of majority where I live).</li>
+    <li>I want to view adult content and am not offended by it.</li>
+    <li>I will not share this material with minors or redistribute it.</li>
+    <li>I agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</li>
+  </ul>
+
+  <form method="post" action="/age-gate" class="gate-actions">
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" name="confirm" value="yes" class="btn btn-primary btn-lg">
+      I am 18 or older — enter
+    </button>
+    <button type="submit" name="confirm" value="no" class="btn btn-ghost">
+      I am under 18 — leave
+    </button>
+  </form>
+
+  <p class="gate-fineprint">
+    Parents: you can block access to adult sites using
+    <a href="https://www.asacp.org/parental-controls/" rel="noopener nofollow">parental control tools</a>.
+    {% if method == "provider" %}
+    <br><strong>Your region requires verified proof of age.</strong>
+    {% endif %}
+  </p>
+</section>
+{% endblock %}

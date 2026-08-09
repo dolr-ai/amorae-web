@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 import config
 from database import close_pool, get_pool
-from routes import health, legal, landing, gate, chat
+from routes import age, chat, creator, feed, gate, health, landing, legal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,11 +45,15 @@ app.add_middleware(
 _STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
-# Order matters: fixed paths (health, legal) register BEFORE the
-# `/{bot_handle}` landing catch-all so /health, /privacy, /terms, /report
-# aren't swallowed by it.
+# Order matters: fixed paths (health, legal, feed, age, creator) register
+# BEFORE the `/{bot_handle}` landing catch-all so /health, /privacy, /terms,
+# /report, /api/..., /age-gate and /exit aren't swallowed by it. Any new
+# top-level route MUST go above `landing` for the same reason.
 app.include_router(health.router)
 app.include_router(legal.router)
+app.include_router(feed.router)
+app.include_router(age.router)
+app.include_router(creator.router)
 app.include_router(gate.router)
 app.include_router(chat.router)
 app.include_router(landing.router)

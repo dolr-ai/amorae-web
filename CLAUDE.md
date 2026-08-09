@@ -21,10 +21,26 @@ Mobile app (SFW, deflects) → link-out → **amorae.ai** (this service) →
 - `app/sessions.py` — our OWN httpOnly session + 18+ consent cookies.
 - `app/models.py` — small Pydantic shapes.
 - `app/templating.py` — shared Jinja2 instance.
-- `app/routes/` — one file per surface (landing, gate, chat, legal, health).
-- `app/services/` — llm (OpenRouter), v2_client (bridges), geo, personas.
+- `app/routes/` — one file per surface (feed, age, creator, landing, gate,
+  chat, legal, health). Fixed paths MUST register before `landing`'s
+  `/{bot_handle}` catch-all — there's a test pinning that.
+- `app/services/` — llm (OpenRouter), v2_client (bridges), geo, personas,
+  feed_client (video feed), age_gate (public 18+ assurance).
+- `app/data/mock_feed.json` — the video-feed shape we're asking the backend
+  for. `FEED_SOURCE=mock|upstream` switches between it and the real service.
 - `app/repositories/` — one file per table (session, consent, conversation, message).
 - `app/templates/`, `app/static/` — server-rendered UI (own Amorae brand).
+
+## Two gates, deliberately separate
+- **Age assurance** (`services/age_gate.py`, `routes/age.py`) — anonymous,
+  cookie-only, no account. Unlocks BROWSING: the homepage feed and creator
+  profiles. The feed is the top of the funnel and must work for a stranger
+  arriving from a social post.
+- **Authentication** (`sessions.py`, `routes/gate.py`) — the valet-ticket
+  handoff. Unlocks INTERACTION: chat, subscribe, tip.
+
+Both set the same consent cookie, so nobody is asked their age twice. Do not
+re-fuse them: requiring login to view the feed kills acquisition.
 
 ## Level-2 isolation (HARD)
 - Adult messages live in **`amorae_db` only** — NEVER `yral_agent_db`.

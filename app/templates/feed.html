@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}{{ brand }} — discover{% endblock %}
+{% block body_class %}feed-body{% endblock %}
+
+{# Full-bleed: the feed owns the whole viewport, so the standard wrap and
+   footer are replaced. Legal links move into the sidebar sheet. #}
+{% block layout %}
+<div class="feed-app">
+
+  <header class="feed-top">
+    <a class="brand" href="/">{{ brand }}</a>
+    <nav class="feed-tabs">
+      <button class="tab is-active" type="button" data-tab="for-you">For you</button>
+      <a class="tab" href="#creators">Creators</a>
+    </nav>
+    {% if is_logged_in %}
+    <a class="btn btn-sm btn-ghost" href="/tara/chat">Messages</a>
+    {% else %}
+    <a class="btn btn-sm btn-primary" href="/tara">Log in</a>
+    {% endif %}
+  </header>
+
+  <main class="feed" id="feed"
+        data-next-cursor="{{ page.next_cursor or '' }}"
+        data-has-more="{{ '1' if page.has_more else '0' }}"
+        aria-label="Video feed">
+
+    {% for video in page.videos %}
+    {# The first card is eager + preloaded so the homepage paints video
+       immediately; everything after it loads as it approaches the viewport. #}
+    <article class="reel" data-video-id="{{ video.video_id }}" tabindex="0">
+      <div class="reel-media">
+        <video
+          class="reel-video"
+          {% if loop.first %}src="{{ video.sources.mp4 }}" preload="auto" autoplay{% else %}data-src="{{ video.sources.mp4 }}" preload="none"{% endif %}
+          poster="{{ video.poster_url }}"
+          playsinline
+          webkit-playsinline
+          muted
+          loop
+          disablepictureinpicture
+          disableremoteplayback
+        ></video>
+        <div class="reel-scrim" aria-hidden="true"></div>
+        <button class="reel-tap" type="button" aria-label="Play or pause"></button>
+        <div class="reel-pausemark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="72" height="72"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        </div>
+      </div>
+
+      <div class="reel-overlay">
+        <div class="reel-info">
+          <a class="reel-creator" href="/c/{{ video.creator.handle }}">
+            <img class="reel-avatar" src="{{ video.creator.avatar_url }}" alt="" width="44" height="44">
+            <span class="reel-names">
+              <span class="reel-name">
+                {{ video.creator.display_name }}
+                {% if video.creator.is_verified %}<span class="verified" title="Verified">✔</span>{% endif %}
+              </span>
+              {% if video.creator.handle %}<span class="reel-handle">@{{ video.creator.handle }}</span>{% endif %}
+            </span>
+          </a>
+
+          {% if video.caption %}
+          <p class="reel-caption">{{ video.caption }}</p>
+          {% endif %}
+
+          <div class="reel-ctas">
+            {% if video.creator.handle %}
+            <a class="btn btn-primary btn-sm" href="/{{ video.creator.handle }}">
+              Chat with {{ video.creator.display_name }}
+            </a>
+            <a class="btn btn-glass btn-sm" href="/c/{{ video.creator.handle }}/subscribe">
+              {% if video.creator.subscription_price_cents %}
+              Subscribe · ${{ '%.2f'|format(video.creator.subscription_price_cents / 100) }}/mo
+              {% else %}Subscribe{% endif %}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="reel-rail">
+          <a class="rail-btn rail-avatar" href="/c/{{ video.creator.handle }}" aria-label="View profile">
+            <img src="{{ video.creator.avatar_url }}" alt="" width="46" height="46">
+            <span class="rail-follow" aria-hidden="true">+</span>
+          </a>
+
+          <button class="rail-btn js-like" type="button" aria-pressed="false"
+                  aria-label="Like" data-count="{{ video.like_count }}">
+            <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+              <path d="M12 21s-7.5-4.9-9.6-9A5.4 5.4 0 0 1 12 6.2 5.4 5.4 0 0 1 21.6 12c-2.1 4.1-9.6 9-9.6 9z"
+                    fill="currentColor"/>
+            </svg>
+            <span class="rail-count js-like-count">{{ video.like_count }}</span>
+          </button>
+
+          <a class="rail-btn" href="/{{ video.creator.handle }}" aria-label="Message">
+            <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+              <path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.1A8 8 0 1 1 21 12z"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            <span class="rail-count">Chat</span>
+          </a>
+
+          <button class="rail-btn js-share" type="button" aria-label="Share"
+                  data-url="/c/{{ video.creator.handle }}">
+            <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+              <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 3v13M12 3 7 8M12 3l5 5"
+                    fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="rail-count">Share</span>
+          </button>
+
+          <button class="rail-btn js-mute" type="button" aria-label="Unmute">
+            <svg class="icon-muted" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+              <path d="M4 9v6h4l5 4V5L8 9H4zM16 9l5 6M21 9l-5 6"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <svg class="icon-unmuted" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+              <path d="M4 9v6h4l5 4V5L8 9H4zM16.5 8.5a5 5 0 0 1 0 7M19 6a8 8 0 0 1 0 12"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+
+    <div class="feed-sentinel" id="feed-sentinel" aria-hidden="true"></div>
+  </main>
+
+  {# Desktop gets a rail the phone doesn't have room for — the same discovery
+     the feed provides, but browsable rather than sequential. #}
+  <aside class="feed-side" id="creators">
+    <h2 class="side-title">Creators</h2>
+    <ul class="creator-list">
+      {% for creator in creators %}
+      <li>
+        <a class="creator-row" href="/c/{{ creator.handle }}">
+          <img src="{{ creator.avatar_image }}" alt="" width="42" height="42">
+          <span class="creator-meta">
+            <span class="creator-name">{{ creator.display_name }}</span>
+            <span class="creator-tease">{{ creator.tease }}</span>
+          </span>
+          {% if not creator.is_launched %}<span class="pill">soon</span>{% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="side-legal">
+      All personas are AI-generated. No real performers appear on this site.<br>
+      <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/report">Report</a>
+    </p>
+  </aside>
+
+  <div class="feed-hint" id="feed-hint" aria-hidden="true">
+    <span>Swipe up for more</span>
+  </div>
+</div>
+
+<script src="/static/feed.js" defer></script>
+{% endblock %}

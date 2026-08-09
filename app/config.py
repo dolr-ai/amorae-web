@@ -101,6 +101,51 @@ CHAT_HISTORY_WINDOW = _env_int("CHAT_HISTORY_WINDOW", 30)
 # How many recent SFW app messages we one-time READ from v2 to seed memory.
 CONTEXT_SEED_WINDOW = _env_int("CONTEXT_SEED_WINDOW", 20)
 
+# ---------------------------------------------------------------------------
+# Video feed (the TikTok-style homepage)
+# ---------------------------------------------------------------------------
+# Where the feed comes from. "mock" serves `app/data/mock_feed.json` so the
+# whole front end works before the mobile backend ships anything; "upstream"
+# calls the real video service. One env flip switches them — no code change.
+FEED_SOURCE = _env("FEED_SOURCE", "mock")  # mock | upstream
+
+# The video-feed service (the "mobile backend" endpoint we share). Today that
+# is ansuman's box; it is being replaced by `yral-rishi-video-service` at
+# video.rishi.yral.com — same path, same contract, so only this value moves.
+VIDEO_FEED_BASE_URL = _env("VIDEO_FEED_BASE_URL", "https://video.rishi.yral.com")
+VIDEO_FEED_TIMEOUT = _env_int("VIDEO_FEED_TIMEOUT", 8)
+
+# Media CDN. Playback and poster URLs are CONSTRUCTED from ids the feed
+# returns (the mobile clients do the same — see yral-mobile
+# `IndividualUserDataSourceImpl.videoUrl`). Adult media must NOT be served
+# from the SFW bucket, so this is its own hostname from day one.
+#   video:  {MEDIA_CDN_BASE}/{publisher_user_id}/{video_id}.mp4
+#   poster: {MEDIA_CDN_BASE}/{publisher_user_id}/{video_id}-thumbnail.png
+MEDIA_CDN_BASE = _env("MEDIA_CDN_BASE", "https://cdn-yral-sfw.yral.com")
+# Set once the CDN publishes HLS ladders; empty = MP4-only playback.
+MEDIA_HLS_BASE = _env("MEDIA_HLS_BASE", "")
+
+# Feed paging. `limit` is what one API call returns; the client keeps a small
+# buffer ahead of the visible video and refills as you scroll.
+FEED_PAGE_SIZE = _env_int("FEED_PAGE_SIZE", 10)
+FEED_PAGE_SIZE_MAX = _env_int("FEED_PAGE_SIZE_MAX", 30)
+
+# ---------------------------------------------------------------------------
+# Age assurance
+# ---------------------------------------------------------------------------
+# "attestation" = the self-declared 18+ interstitial (what ships now).
+# "provider"    = a real age-verification vendor, required in the UK, and in
+# ~20 US states. The gate is written against a seam so turning this on is a
+# config flip plus one service module — see services/age_gate.py.
+AGE_ASSURANCE_MODE = _env("AGE_ASSURANCE_MODE", "attestation")
+# Countries where self-attestation is NOT legally sufficient. Listing a code
+# here makes the gate demand verified proof instead of a checkbox.
+AGE_VERIFICATION_COUNTRIES = [
+    c.strip().upper()
+    for c in _env("AGE_VERIFICATION_COUNTRIES", "").split(",")
+    if c.strip()
+]
+
 # CORS
 CORS_ORIGINS = _env("CORS_ORIGINS", "*")
 

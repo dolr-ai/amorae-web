@@ -27,7 +27,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install ruff
+      # PINNED deliberately. `pip install ruff` floats to the latest release,
+      # and ruff 0.16 promoted several rules (isort, bugbear, blind-except)
+      # into its default set — which turns a green pipeline red without a
+      # single line of our code changing. Bump this on purpose, with the
+      # fixes in the same PR, rather than discovering it mid-review.
+      - run: pip install ruff==0.15.21
       - run: ruff check app/
       - run: ruff format --check app/
 

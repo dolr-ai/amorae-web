@@ -2,21 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  {# Adult surface: kept out of search indexes deliberately. Acquisition is
+     social + link-in-bio, never SEO (see the traffic architecture plan). #}
   <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#12080f">
   <title>{% block title %}Amorae{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css">
+  {% block head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
+  {% block layout %}
   <main class="wrap">
     {% block content %}{% endblock %}
   </main>
   <footer class="footer">
+    <a href="/">Discover</a>
+    <span>·</span>
     <a href="/privacy">Privacy</a>
     <span>·</span>
     <a href="/terms">Terms</a>
     <span>·</span>
     <a href="/report">Report</a>
+    {# This claim covers the WHOLE surface, feed included: the video service
+       only ever delivers AI-generated content, so no real performer appears
+       anywhere on the site. It is also the sentence in the CCBill/Segpay
+       underwriting pack — if the feed ever starts carrying human-filmed
+       video, this line has to change before that ships. #}
+    <p class="footer-legal">
+      All personas on {{ brand|default("Amorae") }} are AI-generated. No real
+      performers appear on this site — see our
+      <a href="/terms">2257 statement</a>.
+    </p>
   </footer>
+  {% endblock %}
 </body>
 </html>

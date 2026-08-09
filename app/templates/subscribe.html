@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Subscribe to {{ bot.display_name }} · {{ brand }}{% endblock %}
+{% block body_class %}profile-body{% endblock %}
+
+{% block content %}
+<section class="checkout">
+  <a class="checkout-back" href="/c/{{ bot.handle }}">&larr; {{ bot.display_name }}</a>
+
+  <header class="checkout-head">
+    <img class="checkout-avatar" src="{{ bot.avatar_image }}" alt="" width="64" height="64">
+    <div>
+      <h1>Subscribe to {{ bot.display_name }}</h1>
+      <p class="muted">Unlimited chat, her full library, and she messages you first.</p>
+    </div>
+  </header>
+
+  <form method="post" action="/c/{{ bot.handle }}/subscribe" class="checkout-form">
+    <h2 class="section-title">Choose a plan</h2>
+    <div class="plan-list">
+      {% for tier in tiers %}
+      <label class="plan {% if tier.selected %}is-selected{% endif %}">
+        <input type="radio" name="tier" value="{{ tier.id }}" {% if tier.selected %}checked{% endif %}>
+        <span class="plan-main">
+          <span class="plan-label">{{ tier.label }}</span>
+          <span class="plan-blurb">{{ tier.blurb }}</span>
+        </span>
+        <span class="plan-price">
+          <span class="plan-permonth">${{ '%.2f'|format(tier.per_month_cents / 100) }}<small>/mo</small></span>
+          <span class="plan-total">${{ '%.2f'|format(tier.total_cents / 100) }} total</span>
+        </span>
+        {% if tier.discount_pct %}<span class="tier-badge">−{{ tier.discount_pct }}%</span>{% endif %}
+      </label>
+      {% endfor %}
+    </div>
+
+    <h2 class="section-title">Payment method</h2>
+    <div class="rail-list">
+      <label class="rail-opt is-selected">
+        <input type="radio" name="rail" value="crypto" checked>
+        <span class="rail-name">USDC / crypto</span>
+        <span class="rail-note">Available first · no chargebacks</span>
+      </label>
+      <label class="rail-opt is-disabled">
+        <input type="radio" name="rail" value="card" disabled>
+        <span class="rail-name">Card</span>
+        <span class="rail-note">In processor underwriting</span>
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button>
+
+    <p class="checkout-fineprint">
+      Billed discreetly. Recurring until cancelled — cancel any time from your
+      account. By subscribing you confirm you are 18+ and accept our
+      <a href="/terms">Terms</a>. All personas are AI-generated; no real
+      performers appear on this site.
+    </p>
+  </form>
+</section>
+{% endblock %}
