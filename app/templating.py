@@ -18,9 +18,13 @@ templates = Jinja2Templates(directory=_TEMPLATES_DIR)
 
 templates.env.globals.update(
     brand=config.BRAND_NAME,
+    brand_domain=config.BRAND_DOMAIN,
     legal_entity=config.LEGAL_ENTITY,
     legal_country=config.LEGAL_ENTITY_COUNTRY,
     legal_address=config.LEGAL_ENTITY_ADDRESS,
     support_email=config.SUPPORT_EMAIL,
     billing_descriptor=config.BILLING_DESCRIPTOR,
+    site_status=config.SITE_STATUS,
+    prelaunch_notice=config.PRELAUNCH_NOTICE,
+    is_prelaunch=config.SITE_STATUS != "live",
 )

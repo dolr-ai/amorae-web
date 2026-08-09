@@ -48,6 +48,16 @@ PORT = _env_int(
 BRAND_NAME = _env("BRAND_NAME", "Amorae")
 BRAND_DOMAIN = _env("BRAND_DOMAIN", "amorae.ai")
 
+# Site lifecycle. "prelaunch" shows a tasteful early-access banner and concept
+# framing (positive, not "under construction" — that reads as not-a-real-
+# business to a payment reviewer). "live" removes the banner. Going live is
+# ONE env flip, no code change and no page to delete.
+SITE_STATUS = _env("SITE_STATUS", "prelaunch")  # prelaunch | live
+PRELAUNCH_NOTICE = _env(
+    "PRELAUNCH_NOTICE",
+    "Amorae is in early access — we're rolling out creators. Subscriptions open soon.",
+)
+
 # ---------------------------------------------------------------------------
 # Legal entity & merchant details (CCBill/Segpay approval)
 # ---------------------------------------------------------------------------

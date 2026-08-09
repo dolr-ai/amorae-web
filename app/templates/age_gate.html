@@ -9,12 +9,17 @@
 <section class="gate">
   <div class="gate-mark">{{ brand }}</div>
 
+  {% if is_prelaunch %}
+  <p class="gate-early">Early access · <a href="/about">what is {{ brand }}?</a></p>
+  {% endif %}
+
   <h1 class="gate-title">This site is for adults</h1>
   <p class="gate-lede">
-    {{ brand }} contains sexually explicit material intended for adults only.
-    Every persona here is AI-generated — no real performers appear on this
-    site.
+    {{ brand }} is an adult platform for AI companions — discover them, chat,
+    and subscribe. It contains sexually explicit material intended for adults
+    only. Every persona is AI-generated; no real performers appear on this site.
   </p>
+  <p class="gate-about"><a href="/about">Read about the concept →</a></p>
 
   <ul class="gate-terms">
     <li>I am at least 18 years old (or the age of majority where I live).</li>

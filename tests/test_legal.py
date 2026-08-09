@@ -179,3 +179,31 @@ def test_subscribe_requires_recurring_consent(client):
     )
     assert with_consent.status_code == 200
     assert "list" in with_consent.text.lower()
+
+
+# ---------------------------------------------------------- prelaunch / about
+
+
+def test_about_page_explains_the_concept(client):
+    body = client.get("/about").text
+    assert client.get("/about").status_code == 200
+    assert "AI companions" in body or "AI-generated" in body
+    for step in ("Discover", "Connect", "Subscribe"):
+        assert step in body
+
+
+def test_prelaunch_banner_renders_when_not_live(client):
+    """SITE_STATUS defaults to prelaunch, so standard pages show the
+    early-access banner + About link. Going live is a one-env flip that drops
+    it (verified manually; the global `is_prelaunch` gates the markup)."""
+    body = client.get("/support").text
+    assert "prelaunch-bar" in body
+    assert 'href="/about"' in body
+
+
+def test_about_stays_public_and_carries_no_gate(client):
+    """A reviewer must be able to read what the business is without the age
+    gate blocking it — the page carries no adult media."""
+    r = client.get("/about")
+    assert r.status_code == 200
+    assert "This site is for adults" not in r.text  # not the gate

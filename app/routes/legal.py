@@ -56,6 +56,14 @@ async def terms(request: Request):
     return _policy_response(request, "terms")
 
 
+@router.get("/about", response_class=HTMLResponse)
+async def about(request: Request):
+    """The concept explainer — what Amorae is. Public, no gate: it carries no
+    adult media, and a payment reviewer (and a curious visitor) should be able
+    to read what the business is before anything else."""
+    return templates.TemplateResponse("about.html", {"request": request})
+
+
 @router.get("/support", response_class=HTMLResponse)
 async def support(request: Request):
     return templates.TemplateResponse(

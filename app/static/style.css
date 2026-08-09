@@ -624,3 +624,55 @@ form { padding: 16px 20px 24px; }
 .cookie-banner p { margin: 0; flex: 1; min-width: 220px; font-size: 13px; color: var(--muted); line-height: 1.5; }
 .cookie-banner a { color: var(--rose-2); }
 .cookie-actions { display: flex; gap: 8px; }
+
+/* --------------------------------------------------------------------------
+   Pre-launch / early-access framing + About page
+   -------------------------------------------------------------------------- */
+.prelaunch-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 6px 14px; padding: 9px 16px;
+  background: linear-gradient(90deg, rgba(255,77,126,.16), rgba(245,195,107,.14));
+  border-bottom: 1px solid var(--line);
+  font-size: 13px; color: var(--rose-2); text-align: center;
+}
+.prelaunch-bar a { color: #fff; font-weight: 600; text-decoration: underline; }
+
+.feed-early {
+  font-size: 11px; font-weight: 700; letter-spacing: .03em;
+  padding: 3px 9px; border-radius: 999px; text-decoration: none;
+  color: var(--gold); background: rgba(245,195,107,.16);
+  border: 1px solid rgba(245,195,107,.3); white-space: nowrap;
+}
+
+.gate-early {
+  font-size: 12px; margin: -10px 0 14px; color: var(--gold);
+}
+.gate-early a { color: var(--gold); }
+.gate-about { margin: -6px 0 18px; font-size: 13.5px; }
+.gate-about a { color: var(--rose-2); font-weight: 600; }
+
+.about { max-width: 720px; }
+.about-kicker {
+  text-transform: uppercase; letter-spacing: .18em; font-size: 12px;
+  font-weight: 700; color: var(--rose-2); margin: 0 0 8px;
+}
+.about h1 { font-size: 34px; line-height: 1.1; letter-spacing: -.02em; margin: 0 0 14px; }
+.about-lede { font-size: 17px; line-height: 1.6; color: #d8c6d2; margin: 0 0 30px; }
+.about-steps {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px; margin: 0 0 10px;
+}
+.about-step {
+  padding: 18px; border-radius: 16px;
+  background: var(--card); border: 1px solid var(--line);
+}
+.about-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--rose); color: #fff; font-weight: 700; font-size: 15px;
+  margin-bottom: 10px;
+}
+.about-step h2 { margin: 0 0 6px; font-size: 17px; }
+.about-step p { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.55; }
+.about-cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0 18px; }
+.about-operator { font-size: 13px; margin-top: 10px; }
