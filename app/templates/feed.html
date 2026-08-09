@@ -9,6 +9,7 @@
 
   <header class="feed-top">
     <a class="brand" href="/">{{ brand }}</a>
+    {% if is_prelaunch %}<a class="feed-early" href="/about">Early access</a>{% endif %}
     <nav class="feed-tabs">
       <button class="tab is-active" type="button" data-tab="for-you">For you</button>
       <a class="tab" href="#creators">Creators</a>

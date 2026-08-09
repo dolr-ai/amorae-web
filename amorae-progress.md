@@ -14,6 +14,7 @@ Last updated: 2026-08-09
 - Creator profile pages (Tara/Mira/Nyx) + subscribe/checkout shell
 - Age gate (anonymous, cookie-only) split from auth; provider seam for real AV
 - App owns its CSP (derived from CDN config); edge dropped its header
+- Early-access framing: /about concept page + pre-launch banner (SITE_STATUS flip)
 - CVE-2026-54283 mitigated (request-body cap); security scan green
 - Deploy pipeline fixed (`DEPLOY_SSH_KEY` secret was missing) — CI deploys work
 - Chat (SSE, OpenRouter, own DB) built & deployed, gated at 401

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}About {{ brand }} — the concept{% endblock %}
+{% block content %}
+<article class="prose about">
+  <p class="about-kicker">The concept</p>
+  <h1>Companions who are actually there.</h1>
+  <p class="about-lede">
+    {{ brand }} is an adult platform for AI companions. Every persona is
+    artificially generated — you discover them, chat with them, and subscribe
+    to the ones you connect with. No real performers appear on the site.
+  </p>
+
+  <div class="about-steps">
+    <div class="about-step">
+      <span class="about-num">1</span>
+      <h2>Discover</h2>
+      <p>A full-screen video feed of AI creators — swipe to browse, no account
+         needed beyond confirming you're 18+.</p>
+    </div>
+    <div class="about-step">
+      <span class="about-num">2</span>
+      <h2>Connect</h2>
+      <p>Tap a creator to see her profile, then start a private chat. She
+         remembers you, and she reaches out first.</p>
+    </div>
+    <div class="about-step">
+      <span class="about-num">3</span>
+      <h2>Subscribe</h2>
+      <p>Support the creators you love with a recurring subscription for her
+         full library and unlimited chat. Cancel any time.</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">What makes {{ brand }} different</h2>
+  <p>
+    Most AI-companion tools give you a one-off scene and forget you the moment
+    you close the tab. {{ brand }} is built around <strong>persistence</strong>:
+    each companion remembers your conversations, looks consistently like
+    herself across her content, and reaches out on her own. She exists when
+    you're not there.
+  </p>
+
+  <h2 class="section-title">Everything here is AI-generated</h2>
+  <p>
+    All content on {{ brand }} is created by artificial-intelligence systems.
+    No real human being is depicted, and every persona is a fictional adult
+    aged 18 or over. See our <a href="/legal/2257">2257 statement</a> and
+    <a href="/legal/aup">Acceptable Use policy</a> for the details.
+  </p>
+
+  {% if is_prelaunch %}
+  <div class="legal-note">
+    <strong>Early access.</strong> {{ brand }} is in its launch phase — we're
+    rolling out creators and finishing the checkout experience. The site,
+    policies and subscribe flow are live and functional; card processing goes
+    live as our payment partner completes onboarding. Questions?
+    <a href="/support">Contact us</a>.
+  </div>
+  {% endif %}
+
+  <div class="about-cta">
+    <a class="btn btn-primary btn-lg" href="/">Browse the feed</a>
+    <a class="btn btn-ghost" href="/support">Contact us</a>
+  </div>
+
+  <p class="about-operator muted">
+    {{ brand }} ({{ brand_domain|default("amorae.ai") }}) is operated by
+    {{ legal_entity }}{% if legal_country %}, {{ legal_country }}{% endif %}.
+  </p>
+</article>
+{% endblock %}
