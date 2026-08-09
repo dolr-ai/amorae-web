@@ -155,6 +155,23 @@ async def subscribe_intent(
     "clicked buy credits" caveat in the creator-platform plan.
     """
     persona = _resolve(request, handle)
+
+    # Both GET routes gate on 18+, so this one must too — otherwise a direct
+    # POST reaches a page carrying her name and photo without passing the
+    # gate, and pollutes the intent metric with traffic that never saw the
+    # offer. Re-render the gate rather than erroring, so a user whose cookie
+    # expired mid-checkout can confirm and continue.
+    if not age_gate.has_passed(request):
+        return templates.TemplateResponse(
+            "age_gate.html",
+            {
+                "request": request,
+                "next": f"/c/{persona['handle']}/subscribe",
+                "method": age_gate.required_method(request),
+                "brand": config.BRAND_NAME,
+            },
+        )
+
     session = await current_session(request)
 
     # Structured so it is greppable in Sentry/logs before there is a table

@@ -229,3 +229,26 @@ def test_personas_carry_ai_influencer_ids_or_an_explicit_gap():
 
 def test_launched_personas_sort_first():
     assert personas.all_personas()[0]["handle"] == "tara"
+
+
+# ------------------------------------------------------- gate completeness
+
+
+def test_every_creator_route_checks_the_age_gate():
+    """Codex caught POST /c/{handle}/subscribe skipping the gate both GET
+    routes enforce. Assert on the module rather than one endpoint, so a new
+    route added later fails here instead of shipping ungated."""
+    import inspect
+
+    from routes import creator
+
+    handlers = [
+        creator.profile,
+        creator.subscribe_page,
+        creator.subscribe_intent,
+    ]
+    for handler in handlers:
+        source = inspect.getsource(handler)
+        assert "age_gate.has_passed" in source, (
+            f"{handler.__name__} does not check the 18+ gate"
+        )
