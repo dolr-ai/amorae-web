@@ -57,8 +57,20 @@ PERSONAS: dict[str, dict] = {
         # From her real live profile (app username `elitesuperdeer`): warm,
         # travel-loving, playful. Suggestive, no hard words (decision #8).
         "tease": "Curvy and confident. Love to travel.",
-        "hero_image": config.TARA_HERO_URL,
-        "avatar_image": config.TARA_HERO_URL,
+        # Real Tara imagery from her own servable content (CSP-allowed CDN), so
+        # her profile face matches her feed. A clean full-body frame with no
+        # burned-in caption. Env TARA_HERO_URL still overrides if needed.
+        "hero_image": config.TARA_HERO_URL
+        or (
+            "https://cdn-yral-sfw.yral.com/"
+            "qi6gd-esmrx-v2oyd-7fwhm-ibfs5-trflm-xm3iy-xq6d3-3hmwu-jb7tk-5qe/"
+            "9eb80ae6472dd4429dc095d286e60868-thumbnail.png"
+        ),
+        "avatar_image": (
+            "https://cdn-yral-sfw.yral.com/"
+            "qi6gd-esmrx-v2oyd-7fwhm-ibfs5-trflm-xm3iy-xq6d3-3hmwu-jb7tk-5qe/"
+            "9eb80ae6472dd4429dc095d286e60868-thumbnail.png"
+        ),
         "system_prompt": _TARA_SYSTEM,
         # WORKING ASSUMPTION (Rishi, 2026-08-09): this ONE principal is Tara
         # for both chat and video. The two names are the known metadata
