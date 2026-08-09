@@ -167,23 +167,29 @@ def test_unmapped_publisher_falls_back_to_a_generic_creator():
     assert video.creator.avatar_url
 
 
-def test_known_persona_is_attributed_by_influencer_id():
-    """The video service confirmed publisher_user_id IS the influencer id, so
-    a persona's own id in that field resolves straight to her."""
-    tara = personas.get("tara")
-    video = feed_client._from_upstream(_upstream_row(publisher_user_id=tara["influencer_id"]))
+# A test principal — Tara's REAL principal (elitesuperdeer's) is pending from
+# Rishi, so these test the resolution MECHANISM by injecting an id rather than
+# depending on a value that isn't wired yet.
+_TEST_PRINCIPAL = "test1-esuperdeer-principal-xxxxx-xxxxx-xxxxx-xxxxx-xxx"
+
+
+def test_known_persona_is_attributed_by_influencer_id(monkeypatch):
+    """The video service confirmed publisher_user_id IS the influencer id, so a
+    persona's own id in that field resolves straight to her."""
+    monkeypatch.setitem(personas.get("tara"), "influencer_id", _TEST_PRINCIPAL)
+    video = feed_client._from_upstream(_upstream_row(publisher_user_id=_TEST_PRINCIPAL))
     assert video.creator.handle == "tara"
     assert video.creator.display_name == "Tara"
     assert video.creator.subscription_price_cents == 1499
 
 
-def test_non_ai_publisher_is_never_resolved_to_a_persona():
+def test_non_ai_publisher_is_never_resolved_to_a_persona(monkeypatch):
     """`publisher_user_id` is only an influencer id when from_ai_influencer is
     true. A non-AI row that happens to carry a persona's id in that field must
     still fall back to generic — we don't attribute human UGC to a persona."""
-    tara = personas.get("tara")
+    monkeypatch.setitem(personas.get("tara"), "influencer_id", _TEST_PRINCIPAL)
     video = feed_client._from_upstream(
-        _upstream_row(publisher_user_id=tara["influencer_id"], from_ai_influencer=False)
+        _upstream_row(publisher_user_id=_TEST_PRINCIPAL, from_ai_influencer=False)
     )
     assert video.creator.handle == ""
     assert video.creator.display_name == "Amorae"
@@ -230,13 +236,19 @@ def test_upstream_outage_degrades_instead_of_raising(monkeypatch):
 # ---------------------------------------------------------------- personas
 
 
-def test_personas_carry_ai_influencer_ids_or_an_explicit_gap():
-    """Persona ids must match the ai_influencers catalogue so one persona
-    spans YRAL chat and Amorae video. None is allowed only for personas that
-    do not exist in that catalogue yet."""
-    tara = personas.get("tara")
-    assert tara["influencer_id"] and tara["influencer_id"].endswith("-5qe")
-    assert personas.by_influencer_id(tara["influencer_id"])["handle"] == "tara"
+def test_persona_influencer_id_is_a_principal_or_an_explicit_none():
+    """A persona's influencer_id is either its publisher principal (so one
+    persona spans YRAL video + Amorae) or None when that principal isn't wired
+    yet. Tara's is currently None pending elitesuperdeer's real principal."""
+    for persona in personas.PERSONAS.values():
+        assert persona["influencer_id"] is None or isinstance(
+            persona["influencer_id"], str
+        )
+
+
+def test_by_influencer_id_lookup(monkeypatch):
+    monkeypatch.setitem(personas.get("tara"), "influencer_id", _TEST_PRINCIPAL)
+    assert personas.by_influencer_id(_TEST_PRINCIPAL)["handle"] == "tara"
     assert personas.by_influencer_id(None) is None
     assert personas.by_influencer_id("not-a-principal") is None
 
