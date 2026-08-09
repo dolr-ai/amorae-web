@@ -83,14 +83,12 @@ LEGAL_COPY_APPROVED = _env_bool("LEGAL_COPY_APPROVED", False)
 # still name a custodian + address as processors expect the section present).
 RECORDS_CUSTODIAN = _env("RECORDS_CUSTODIAN", LEGAL_ENTITY)
 
-# Tara's hero photo, served LOCALLY from static (the media CDN is CSP-allowed
-# but a local file is the safe default). This is a PLACEHOLDER. Tara is one
-# identity across chat ("taaarraaah") and video (username "elitesuperdeer"),
-# principal qi6gd… (see personas.py). Her real avatar loads from her CDN
-# profile once the metadata/auth server settles and we verify content under
-# that principal. Env-overridable; an override MUST be `self` or a CSP
-# img-src allowlisted origin.
-TARA_HERO_URL = _env("TARA_HERO_URL", "/static/tara.jpg")
+# Optional OVERRIDE for Tara's hero/avatar image. Empty by default so
+# personas.py uses her real CDN thumbnail (verified servable content under her
+# principal qi6gd…). Set this only to force a different image; it MUST be
+# `self` or a CSP img-src allowlisted origin. `/static/tara.jpg` remains as a
+# local fallback asset if ever needed.
+TARA_HERO_URL = _env("TARA_HERO_URL", "")
 
 # LLM — reuse the SAME provider/model as v2's `user_chat_main_nsfw`
 # (OpenRouter, google/gemini-2.5-flash). No content-safety filter here:

@@ -40,11 +40,10 @@ Last updated: 2026-08-09
 
 ## 🧭 Open questions / findings for Rishi
 
-- **Tara identity: ONE identity, principal `qi6gd…` (working assumption).** Chat
-  side CONFIRMED. Video side WIRED but VERIFY EMPIRICALLY once the metadata/auth
-  server settles (Saikat reworking auth; username→principal lookup returns blank
-  now; qi6gd has 0 videos in the current frozen feed). "elitesuperdeer" is the
-  video username for the same principal (metadata split-brain).
+- **Tara: real videos LIVE.** Her 6 servable videos (principal qi6gd, verified
+  playable) + real avatar/hero now drive the feed and profile — coherent, real
+  Tara content, no more random SFW placeholders. Fixed set of 6 (Jan/Feb), not a
+  growing library. Chat + video both confirmed under qi6gd.
 - **Web chat is unreachable without the app.** Clicking "Chat with Tara" on the
   web needs a valet ticket from the mobile app; a pure-web visitor can't start a
   chat (no web login/signup). Product decision needed: anonymous web chat, or a
