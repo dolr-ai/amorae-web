@@ -18,8 +18,11 @@ Last updated: 2026-08-09
 - CVE-2026-54283 mitigated (request-body cap); security scan green
 - Deploy pipeline fixed (`DEPLOY_SSH_KEY` secret was missing) — CI deploys work
 - Chat (SSE, OpenRouter, own DB) built & deployed, gated at 401
-- Anonymous web chat: 'Chat with Tara'/'Log in' now work without the app
-  (18+ gate → anon session → chat), rate-limited. Needs OPENROUTER_API_KEY in prod.
+- Anonymous web chat: CODE merged (start-chat, anon session, rate limit). BLOCKED
+  on prod: (1) amorae_db has NO schema — migration 001 never applied, so chat/
+  sessions/consent never worked in prod; (2) amorae drifted onto rishi-1/2
+  (chat-AI nodes). Both handed to infra: docs/prod-db-migration-handoff-2026-08-09.md.
+  Flag stays OFF until schema exists. OpenRouter key leaked in logs → ROTATE.
 
 ## 🔨 In progress
 

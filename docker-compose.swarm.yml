@@ -48,8 +48,14 @@ services:
       replicas: 2
       placement:
         max_replicas_per_node: 1
+        # Pin amorae to rishi-4/5 (its intended nodes). The single != rishi-6
+        # constraint let a rolling restart drift amorae onto rishi-1/2 — the
+        # chat-AI PROD nodes (Rule 7) — so exclude those explicitly too.
         constraints:
-          - node.hostname != rishi-6   # keep amorae off the analytics node
+          - node.hostname != rishi-6   # analytics node
+          - node.hostname != rishi-1   # chat-AI prod (Rule 7)
+          - node.hostname != rishi-2   # chat-AI prod (Rule 7)
+          - node.hostname != rishi-3   # chat-AI prod (Rule 7)
 
       update_config:
         parallelism: 1
