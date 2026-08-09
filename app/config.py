@@ -127,8 +127,23 @@ GEO_BLOCKED_COUNTRIES = [
 
 # Walking-skeleton escape hatch: allow "Continue (18+)" to open an
 # ANONYMOUS session with no ticket, so the skeleton is testable before
-# v2's handoff/exchange endpoint exists. MUST be False in production.
+# v2's handoff/exchange endpoint exists.
 DEV_ALLOW_ANON = _env_bool("DEV_ALLOW_ANON", False)
+
+# Standalone-web feature (decision 2026-08-09): let a visitor who cleared the
+# 18+ gate chat WITHOUT a mobile-app valet ticket — an anonymous per-browser
+# session. This is what makes the web funnel (browse → chat → subscribe) work
+# on its own; the app-handoff path still works when a ticket is present.
+ALLOW_ANON_CHAT = _env_bool("ALLOW_ANON_CHAT", False)
+
+# Rate limits for the chat message endpoint — the one route that spends money
+# (LLM tokens) and is now reachable anonymously, so it must be bounded. Keyed
+# by client IP. In-memory per replica (a first guard; a Redis limiter would be
+# global — see services/rate_limit.py).
+CHAT_RATELIMIT_MAX = _env_int("CHAT_RATELIMIT_MAX", 20)  # messages...
+CHAT_RATELIMIT_WINDOW_SECONDS = _env_int(
+    "CHAT_RATELIMIT_WINDOW_SECONDS", 300
+)  # ...per 5 min
 
 # How many prior turns we send to the LLM per reply (mirrors v2's window).
 CHAT_HISTORY_WINDOW = _env_int("CHAT_HISTORY_WINDOW", 30)

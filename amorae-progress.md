@@ -18,6 +18,8 @@ Last updated: 2026-08-09
 - CVE-2026-54283 mitigated (request-body cap); security scan green
 - Deploy pipeline fixed (`DEPLOY_SSH_KEY` secret was missing) — CI deploys work
 - Chat (SSE, OpenRouter, own DB) built & deployed, gated at 401
+- Anonymous web chat: 'Chat with Tara'/'Log in' now work without the app
+  (18+ gate → anon session → chat), rate-limited. Needs OPENROUTER_API_KEY in prod.
 
 ## 🔨 In progress
 

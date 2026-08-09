@@ -42,8 +42,10 @@ async def continue_18plus(request: Request, bot_handle: str, ticket: str = Form(
             return RedirectResponse(url=f"/{bot['handle']}?e=expired", status_code=303)
         user_id = identity.user_id
         is_anonymous = identity.is_anonymous
-    elif config.DEV_ALLOW_ANON:
-        is_anonymous = True  # skeleton-only path; disabled in prod
+    elif config.ALLOW_ANON_CHAT or config.DEV_ALLOW_ANON:
+        # Standalone-web path: no valet ticket, open an anonymous session so
+        # the visitor can chat. The 18+ consent is still recorded below.
+        is_anonymous = True
     else:
         # No ticket and anon disabled → must come in via the app link.
         return RedirectResponse(url=f"/{bot['handle']}?e=login", status_code=303)
