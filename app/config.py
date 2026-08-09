@@ -190,6 +190,14 @@ def _build_csp() -> str:
 
 CONTENT_SECURITY_POLICY = _env("CONTENT_SECURITY_POLICY", _build_csp())
 
+# Max accepted request body. Our forms carry a ticket, a tier name, or a
+# short report — kilobytes at most — so 256 KB is generous headroom while
+# still bounding the CVE-2026-54283 DoS vectors (a huge urlencoded field, or
+# hundreds of thousands of tiny ones). 0 disables the check. Revisit only if
+# a future endpoint legitimately accepts a large body (e.g. media upload),
+# which would want its own per-route limit rather than raising this global.
+MAX_REQUEST_BODY_BYTES = _env_int("MAX_REQUEST_BODY_BYTES", 256 * 1024)
+
 # CORS
 CORS_ORIGINS = _env("CORS_ORIGINS", "*")
 
