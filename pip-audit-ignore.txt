@@ -3,11 +3,26 @@
 # here fails CI. Add entries only with a per-CVE justification.
 #
 # starlette 0.46.2 — transitive via fastapi==0.115.12 (which pins
-# starlette<0.47). The fixes land in starlette 0.47.2 / 0.49.1 / 1.x,
-# which require leaving the fastapi 0.11x line — a larger upgrade tracked
-# separately (mirrors yral-rishi-agent's accepted baseline). Accepted for
-# now: amorae runs behind Caddy + Cloudflare; the affected paths (multipart
-# parsing / large uploads) are not exercised by this text-only v1.
+# starlette<0.47). The fixes land in starlette 0.47.2 / 0.49.1 / 1.x, which
+# require leaving the fastapi 0.115 line for 0.141 — a major-version bump
+# tracked as its own PR (see DAILY-LOG 2026-08-09). Keep in sync with
+# .trivyignore.
+#
+# The prior justification here ("not exercised by this text-only v1 /
+# multipart uploads") was STALE and wrong on two counts once the video feed
+# shipped: (1) CVE-2026-54283 is about urlencoded forms, not multipart, and
+# (2) the feed added unauthenticated form endpoints (the age gate is now the
+# public entry point). Corrected below, per-CVE:
+#
+#   CVE-2026-54283 — urlencoded form-limit DoS. Was reachable; now MITIGATED
+#     by the LimitRequestBody middleware (256 KB body cap), verified in
+#     tests/test_security_headers.py.
+#   CVE-2025-62727 — Range-header DoS. Reachable surface is StaticFiles, which
+#     serves only small assets here; feed video is on the CDN, not this app.
+#   CVE-2026-48818, CVE-2026-48817 — StaticFiles UNC-path SSRF/cred theft.
+#     Windows-only; amorae runs Linux containers. Not applicable.
+#   PYSEC-2026-161 / -248 / -249, CVE-2025-54121 — remaining starlette
+#     advisories in the same <1.3.1 band, resolved by the same upgrade.
 PYSEC-2026-161
 PYSEC-2026-248
 PYSEC-2026-249

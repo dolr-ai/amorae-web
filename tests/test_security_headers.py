@@ -89,3 +89,66 @@ def test_policy_is_env_overridable():
     without a deploy."""
     assert isinstance(config.CONTENT_SECURITY_POLICY, str)
     assert config.CONTENT_SECURITY_POLICY.startswith("default-src")
+
+
+# --------------------------------------------------------- request body cap
+# Mitigation for CVE-2026-54283 (starlette < 1.3.1 ignores form limits for
+# application/x-www-form-urlencoded). Every assertion below is a vector that
+# was confirmed exploitable against the unauthenticated age gate before the
+# LimitRequestBody middleware landed.
+
+_URLENCODED = {"content-type": "application/x-www-form-urlencoded"}
+
+
+def test_normal_form_post_still_works(client):
+    """The regression that the first cut of this middleware introduced: it
+    consumed the body and the gate saw an empty `confirm`, silently sending
+    every visitor to /exit. A real confirm must set consent and go to /."""
+    response = client.post(
+        "/age-gate", data={"confirm": "yes", "next": "/"}, follow_redirects=False
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/"
+    assert config.CONSENT_COOKIE_NAME in response.cookies
+
+
+def test_oversized_body_rejected_via_content_length(client):
+    huge = "x" * (config.MAX_REQUEST_BODY_BYTES + 1024)
+    response = client.post("/age-gate", content=f"confirm={huge}", headers=_URLENCODED)
+    assert response.status_code == 413
+
+
+def test_many_fields_rejected(client):
+    """The event-loop-blocking vector: hundreds of thousands of tiny fields.
+    Total size, not any single field, is what the cap bounds."""
+    payload = "&".join(f"f{i}=1" for i in range(400_000))
+    assert len(payload) > config.MAX_REQUEST_BODY_BYTES
+    response = client.post("/age-gate", content=payload, headers=_URLENCODED)
+    assert response.status_code == 413
+
+
+def test_oversized_body_rejected_without_content_length(client):
+    """The chunked vector — no Content-Length header — is the one an early
+    version of this middleware let through after a full second of blocking.
+    A generator body makes the TestClient stream without declaring length."""
+
+    def chunked():
+        yield b"confirm="
+        yield b"x" * (config.MAX_REQUEST_BODY_BYTES + 4096)
+
+    response = client.post("/age-gate", content=chunked(), headers=_URLENCODED)
+    assert response.status_code == 413
+
+
+def test_body_just_under_the_cap_is_accepted(client):
+    """A legitimately long report (the one textarea on the site) must pass."""
+    body = "reason=other&details=" + "x" * (config.MAX_REQUEST_BODY_BYTES // 2)
+    response = client.post("/report", content=body, headers=_URLENCODED)
+    assert response.status_code == 200
+
+
+def test_get_requests_are_untouched(client):
+    """The cap only applies to body-bearing methods; the feed hot path and
+    SSE must be unaffected."""
+    assert client.get("/").status_code == 200
+    assert client.get("/c/tara").status_code == 200

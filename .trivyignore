@@ -1,3 +1,35 @@
 # Trivy allowlist for amorae-web container scans. One CVE ID per line;
 # # for comments. HIGH+CRITICAL fail CI unless listed here with a
-# justification. Empty baseline.
+# justification.
+#
+# ─────────────────────────────────────────────────────────────────────────
+# starlette 0.46.2 — transitive via fastapi==0.115.12 (pins starlette<0.47).
+# All three fixes require starlette 1.x, i.e. leaving the FastAPI 0.115 line
+# for 0.141 — a major web-framework bump with real regression risk, tracked
+# as its own PR (see DAILY-LOG 2026-08-09). Each is accepted below with a
+# reason specific to THIS deployment, not a blanket "transitive dep" wave.
+# Keep this in sync with pip-audit-ignore.txt — same dependency, same story.
+# ─────────────────────────────────────────────────────────────────────────
+
+# CVE-2026-54283 — request.form() ignores max_fields/max_part_size for
+# application/x-www-form-urlencoded (unauthenticated DoS). This one was
+# genuinely reachable: every form endpoint here is unauthenticated and the
+# age gate is the public entry point. MITIGATED in app code by the
+# LimitRequestBody middleware (256 KB request-body cap), which bounds both
+# the many-fields and huge-field vectors before the parser runs — verified
+# by tests/test_security_headers.py. Suppressed because mitigated, not
+# because unreachable.
+CVE-2026-54283
+
+# CVE-2026-48818 — SSRF / NTLM credential theft via UNC paths in StaticFiles.
+# Windows-only (UNC \\host\share semantics). amorae runs Linux containers on
+# the swarm, so this is not applicable here — suppressed on platform, not on
+# risk appetite.
+CVE-2026-48818
+
+# CVE-2025-62727 — DoS via Range-header merging on file responses. Reachable
+# surface is StaticFiles, which here serves only small assets (feed.js ~9 KB,
+# css, a handful of SVGs, a 27 KB jpg); the feed's real video is served by the
+# CDN, never by this app, and static is Cloudflare-cached. Low impact until
+# the starlette upgrade lands.
+CVE-2025-62727
