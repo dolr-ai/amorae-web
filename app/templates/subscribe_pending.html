@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Almost there · {{ brand }}{% endblock %}
+{% block body_class %}profile-body{% endblock %}
+
+{% block content %}
+{# Honest dead-end. No processor has cleared underwriting yet, so pretending
+   a checkout exists would just burn the intent we came here to measure. #}
+<section class="checkout checkout-narrow">
+  <img class="checkout-avatar" src="{{ bot.avatar_image }}" alt="" width="72" height="72">
+  <h1>You're on the list</h1>
+  <p class="muted">
+    {{ bot.display_name }}'s subscriptions open the moment our
+    {% if rail == "crypto" %}crypto checkout{% else %}card processing{% endif %}
+    goes live. We've noted that you wanted in — you'll get first access.
+  </p>
+
+  <div class="checkout-actions">
+    <a class="btn btn-primary btn-lg" href="/{{ bot.handle }}">
+      Chat with {{ bot.display_name }} — free for now
+    </a>
+    <a class="btn btn-ghost" href="/">Back to discover</a>
+  </div>
+</section>
+{% endblock %}

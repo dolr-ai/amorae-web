@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Age verification required · {{ brand }}{% endblock %}
+{% block body_class %}gate-body{% endblock %}
+
+{% block content %}
+{# The fail-CLOSED branch. A jurisdiction that mandates verified proof of age
+   must not be satisfiable by a checkbox, so until a provider is wired in
+   this is a wall rather than a workaround. #}
+<section class="gate gate-narrow">
+  <div class="gate-mark">{{ brand }}</div>
+  <h1 class="gate-title">Age verification required</h1>
+  <p class="gate-lede">
+    The law where you are requires us to verify your age with an approved
+    provider before showing you adult content. Confirming it yourself isn't
+    enough.
+  </p>
+  <p class="gate-lede">
+    We're not able to verify visitors from your region yet, so we can't let
+    you in. We'd rather turn you away than break the rule.
+  </p>
+  <p class="gate-fineprint">
+    Questions? <a href="/report">Contact us</a>.
+  </p>
+</section>
+{% endblock %}

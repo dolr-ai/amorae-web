@@ -4,6 +4,7 @@ __pycache__/
 .env.local
 secrets/
 .venv/
+.venv-local/
 venv/
 .DS_Store
 .pytest_cache/

@@ -51,3 +51,19 @@ def test_app_registers_expected_routes():
     assert "/{bot_handle}/chat" in paths
     assert "/{bot_handle}/continue" in paths
     assert "/{bot_handle}/message" in paths
+    # Public discovery surface
+    assert "/" in paths and "/api/v1/feed" in paths
+    assert "/age-gate" in paths and "/exit" in paths
+    assert "/c/{handle}" in paths and "/c/{handle}/subscribe" in paths
+
+
+def test_fixed_paths_register_before_the_handle_catch_all():
+    """`GET /{bot_handle}` is a root-level catch-all. Any fixed top-level
+    route declared after it would be swallowed, so ordering is load-bearing
+    rather than cosmetic."""
+    from main import app
+
+    ordered = [r.path for r in app.routes]
+    catch_all = ordered.index("/{bot_handle}")
+    for fixed in ("/", "/api/v1/feed", "/age-gate", "/exit", "/health", "/privacy"):
+        assert ordered.index(fixed) < catch_all, f"{fixed} is shadowed by /{{bot_handle}}"
