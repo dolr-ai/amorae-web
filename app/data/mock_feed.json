@@ -1,5 +1,9 @@
 {
   "_comment": [
+    "TEMPORARY placeholder feed \u2014 pending the one-backend rewire (real videos",
+    "for web-surface influencers via the video service). See",
+    "docs/one-backend-data-layer-contract-2026-08-09.md. A startup WARNING",
+    "flags this so it isn't buried. Do not grow this file; it will be deleted.",
     "REAL Tara videos \u2014 her 6 servable on-chain posts (principal qi6gd\u2026),",
     "supplied by the video-service session 2026-08-09 and verified playable",
     "(mp4 206, thumbnail 200) on the yral-sfw CDN. Same URL pattern the",

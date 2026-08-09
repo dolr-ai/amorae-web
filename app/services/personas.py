@@ -1,6 +1,17 @@
-"""Bot registry for the web brand. Data-driven and keyed by handle so a
-future NSFW bot is just another entry — no rework (decision #12: TARA
-ONLY for v1, but keep the architecture per-bot).
+"""Bot registry for the web brand.
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║ TEMPORARY — HARDCODED PLACEHOLDER. Do not add more personas here.         ║
+║ Per the one-backend decision (2026-08-09), this hardcoded catalog is      ║
+║ being replaced by a client reading the real `ai_influencers` catalog from ║
+║ yral-rishi-agent, filtered by the `surface` column (web/both). See        ║
+║ docs/one-backend-data-layer-contract-2026-08-09.md. Kept only until the   ║
+║ surface column lands; a startup WARNING flags it so it isn't buried.      ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Data-driven and keyed by handle so a future NSFW bot is just another entry
+— no rework (decision #12: TARA ONLY for v1, but keep the architecture
+per-bot).
 
 Each persona carries the UNCONSTRAINED adult system prompt used on the
 web surface. This is the deliberate counterpart to the app surface, where

@@ -24,6 +24,22 @@ Last updated: 2026-08-09
   (chat-AI nodes). Both handed to infra: docs/prod-db-migration-handoff-2026-08-09.md.
   Flag stays OFF until schema exists. OpenRouter key leaked in logs → ROTATE.
 
+## 🧭 ARCHITECTURE REDIRECT (2026-08-09, locked)
+
+ONE backend: web + mobile share `yral-rishi-agent` + `ai_influencers`. `amorae_db`
+ABANDONED (migration CANCELLED). Chat → agent v2 chat API. Web/mobile split via a
+`surface` column (default mobile; web shows web/both). amorae-web keeps the
+frontend, swaps the data layer, becomes stateless. Contract:
+`docs/one-backend-data-layer-contract-2026-08-09.md`. Operating rules: code+PRs
+only, ALL prod ops → Session-6, never print secrets, never schedule on rishi-1/2/3.
+
+Rewire PRs (each gated on another session):
+- PR1 catalog client (personas from ai_influencers) — waits on `surface` column (dev session)
+- PR2 feed real videos — waits on Saikat's auth/metadata settling
+- PR3 chat → v2 chat API + delete amorae_db layer — waits on dev session's v2 integration
+
+Current hardcoded personas + mock_feed = TEMPORARY (startup WARNING + banners), until above.
+
 ## 🔨 In progress
 
 - **CCBill/Segpay approval-readiness** — BUILT (PR open). Full policy set,

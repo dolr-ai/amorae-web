@@ -28,6 +28,15 @@ if config.SENTRY_DSN:
 async def lifespan(app: FastAPI):
     await get_pool()
     logger.info("%s v%s started", config.APP_NAME, config.APP_VERSION)
+    # Don't let the hardcoded placeholders hide. Per the one-backend decision
+    # (docs/one-backend-data-layer-contract-2026-08-09.md), personas + the feed
+    # are TEMPORARY until the ai_influencers/surface + video-service rewire.
+    if config.FEED_SOURCE == "mock":
+        logger.warning(
+            "TEMPORARY DATA: serving hardcoded personas + mock_feed.json. "
+            "Pending one-backend rewire (ai_influencers `surface` + video "
+            "service). See docs/one-backend-data-layer-contract-2026-08-09.md."
+        )
     yield
     await close_pool()
 
