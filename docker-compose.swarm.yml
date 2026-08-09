@@ -37,6 +37,9 @@ services:
       COOKIE_SECURE: "true"
       GEO_BLOCKED_COUNTRIES: ${GEO_BLOCKED_COUNTRIES:-}
       DEV_ALLOW_ANON: "false"
+      # Standalone-web anonymous chat: a visitor past the 18+ gate can chat
+      # without the mobile app. Chat REPLIES still need OPENROUTER_API_KEY set.
+      ALLOW_ANON_CHAT: "true"
       CORS_ORIGINS: https://amorae.ai
 
     deploy:

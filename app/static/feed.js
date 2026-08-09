@@ -149,7 +149,7 @@
 
     var ctas = handle
       ? '<div class="reel-ctas">' +
-        '<a class="btn btn-primary btn-sm" href="/' + handle + '">Chat with ' + creator.display_name + "</a>" +
+        '<a class="btn btn-primary btn-sm" href="/' + handle + '/start-chat">Chat with ' + creator.display_name + "</a>" +
         '<a class="btn btn-glass btn-sm" href="/c/' + handle + '/subscribe">' + price + "</a>" +
         "</div>"
       : "";
@@ -180,7 +180,7 @@
           '<button class="rail-btn js-like" type="button" aria-pressed="false" aria-label="Like" data-count="' + (video.like_count || 0) + '">' +
             '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 21s-7.5-4.9-9.6-9A5.4 5.4 0 0 1 12 6.2 5.4 5.4 0 0 1 21.6 12c-2.1 4.1-9.6 9-9.6 9z" fill="currentColor"/></svg>' +
             '<span class="rail-count js-like-count">' + compact(video.like_count) + "</span></button>" +
-          '<a class="rail-btn" href="/' + handle + '" aria-label="Message">' +
+          '<a class="rail-btn" href="/' + handle + '/start-chat" aria-label="Message">' +
             '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.1A8 8 0 1 1 21 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>' +
             '<span class="rail-count">Chat</span></a>' +
           '<button class="rail-btn js-share" type="button" aria-label="Share" data-url="/c/' + handle + '">' +
@@ -212,7 +212,7 @@
       '<div class="reel-info" style="text-align:center">' +
       '<p class="reel-caption" style="-webkit-line-clamp:none">That\'s everything for now.</p>' +
       '<div class="reel-ctas" style="justify-content:center">' +
-      '<a class="btn btn-primary btn-sm" href="/tara">Chat with Tara</a></div></div></div>';
+      '<a class="btn btn-primary btn-sm" href="/tara/start-chat">Chat with Tara</a></div></div></div>';
     return el;
   }
 

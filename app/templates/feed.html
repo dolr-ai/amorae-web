@@ -17,7 +17,7 @@
     {% if is_logged_in %}
     <a class="btn btn-sm btn-ghost" href="/tara/chat">Messages</a>
     {% else %}
-    <a class="btn btn-sm btn-primary" href="/tara">Log in</a>
+    <a class="btn btn-sm btn-primary" href="/tara/start-chat">Chat</a>
     {% endif %}
   </header>
 
@@ -68,7 +68,7 @@
 
           <div class="reel-ctas">
             {% if video.creator.handle %}
-            <a class="btn btn-primary btn-sm" href="/{{ video.creator.handle }}">
+            <a class="btn btn-primary btn-sm" href="/{{ video.creator.handle }}/start-chat">
               Chat with {{ video.creator.display_name }}
             </a>
             <a class="btn btn-glass btn-sm" href="/c/{{ video.creator.handle }}/subscribe">
@@ -95,7 +95,7 @@
             <span class="rail-count js-like-count">{{ video.like_count }}</span>
           </button>
 
-          <a class="rail-btn" href="/{{ video.creator.handle }}" aria-label="Message">
+          <a class="rail-btn" href="/{{ video.creator.handle }}/start-chat" aria-label="Message">
             <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
               <path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.1A8 8 0 1 1 21 12z"
                     fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
