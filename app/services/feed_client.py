@@ -108,8 +108,23 @@ def hls_url(video_id: str, publisher_user_id: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _creator_for(publisher_user_id: str) -> FeedCreator:
-    persona = personas.by_influencer_id(publisher_user_id) or _UNKNOWN_CREATOR
+def _creator_for(publisher_user_id: str, from_ai_influencer: bool) -> FeedCreator:
+    """Resolve the persona behind a video.
+
+    The video service confirmed (2026-08-09) that for an AI-influencer video
+    the `publisher_user_id` IS the `ai_influencers.id` — the same id our
+    personas carry — so we derive the creator client-side with no extra field
+    in the payload. A non-AI publisher is never one of our personas, so we
+    don't even attempt the lookup and fall straight to the generic creator.
+
+    We deliberately resolve ONLY against our own curated personas, not against
+    v2's `/influencers/{id}` endpoint: Amorae shows its own cast, not every
+    YRAL creator who happens to appear in the shared feed.
+    """
+    persona = None
+    if from_ai_influencer:
+        persona = personas.by_influencer_id(publisher_user_id)
+    persona = persona or _UNKNOWN_CREATOR
     return FeedCreator(
         handle=persona["handle"],
         display_name=persona["display_name"],
@@ -135,13 +150,16 @@ def _from_upstream(raw: dict[str, Any]) -> FeedVideo | None:
             hls=hls_url(video_id, publisher),
         ),
         poster_url=poster_url(video_id, publisher),
-        # Not in the upstream contract — see the gap list in the web contract
-        # doc. Empty caption renders as no caption, which is fine.
+        # caption is NOT in the upstream contract and we're no longer asking
+        # for it — we author persona content ourselves. Empty renders as no
+        # caption. duration_seconds / like_count ARE coming from the video
+        # service (both cheap their side) and are read here already, so they
+        # light up with zero change when the fields appear.
         caption=raw.get("caption", ""),
         duration_seconds=raw.get("duration_seconds"),
         view_count=raw.get("num_views_all", 0) or 0,
         like_count=raw.get("like_count", 0) or 0,
-        creator=_creator_for(publisher),
+        creator=_creator_for(publisher, bool(raw.get("from_ai_influencer"))),
     )
 
 

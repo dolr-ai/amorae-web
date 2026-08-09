@@ -3,21 +3,51 @@
 **Date:** 2026-08-09
 **From:** amorae-web (the Amorae front end)
 **To:** the Video Service Session (`yral-rishi-video-service`)
-**Status:** request for contract — the web UI is BUILT and working against the
-mock version of this shape today.
+**Status:** RESOLVED (2026-08-09) — the one ask that mattered needs no backend
+change. Kept as the record of what we consume and what's still worth adding.
 
 ---
 
-## 0. The one-paragraph version
+## 0. Update — the video service answered (2026-08-09)
+
+The blocking ask is **already satisfied, no field needed.** For an AI-influencer
+video the `publisher_user_id` **is** the `ai_influencers.id` — the same id our
+personas carry — so we derive the creator client-side. amorae-web now does
+exactly this (`_creator_for(..., from_ai_influencer)` in
+`services/feed_client.py`), gated on `from_ai_influencer` so human UGC is never
+attributed to a persona. **No new `influencer_id` field, no CORS, no mobile
+release, no waiting on the rebuild.**
+
+Revised asks:
+
+| Field | Verdict |
+|---|---|
+| creator identity | **RESOLVED** — derived from `publisher_user_id`, no field |
+| `duration_seconds` | coming (free their side — already `duration_ms` in the media index); we already read it |
+| `like_count` | coming (cheap — a Bool aggregate in the views job); we already read it |
+| `caption` | **DROPPED.** Not in the media-index schema and would need a new dependency for a cosmetic field. We author persona captions ourselves. |
+
+**Bigger finding, flagged by the video service:** the live feed's underlying
+data (`user_video_relation`) **stopped on 2026-07-16** and had been decaying for
+months before that. Anything rendered from the live upstream is weeks stale and
+staling daily. **Consequence for us: stay on the curated `FEED_SOURCE=mock`
+feed** — do NOT flip to `upstream` for real traffic until the ingestion
+pipeline is fixed (a different session's problem: `video-services-absorption`).
+The mock is real, playable, curated persona content and is the correct posture
+regardless.
+
+Everything below is the original request, kept for the record.
+
+---
+
+## 0b. The original one-paragraph version
 
 The web feed consumes the **same endpoint the mobile app consumes** — we do not
 want a second feed service. Today's contract gives us ids and view counts, and
 we can derive playback and poster URLs from those ourselves, exactly as the
-mobile clients do. **Four fields are genuinely missing and cannot be derived:
-`caption`, `duration_seconds`, `like_count`, and a creator identity we can
-resolve to a persona.** Without them the feed plays, but every overlay says
-"Amorae" with no caption — which is the entire monetisation surface missing.
-We need **no CORS work, no new hostname, and no mobile release.**
+mobile clients do. We thought we needed a creator identity field; it turns out
+`publisher_user_id` already is one. We need **no CORS work, no new hostname, and
+no mobile release.**
 
 ---
 
