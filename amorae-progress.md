@@ -40,13 +40,11 @@ Last updated: 2026-08-09
 
 ## 🧭 Open questions / findings for Rishi
 
-- **Tara's videos: FOUND — different record than we had.** The live Tara is
-  the video-creator profile **`elitesuperdeer`** (Tara, 22, Toronto, "Powered
-  by AI", 3k followers, full video library) — NOT the `qi6gd`/"taaarraaah"
-  Mumbai chat bot we'd hard-coded. Persona metadata corrected (Toronto/22/bio).
-  **BLOCKED on Rishi:** need elitesuperdeer's PRINCIPAL id (Share → link on her
-  profile) to resolve her videos + real avatar. No public username→principal
-  lookup exists, so this is the one thing I can't derive.
+- **Tara identity: ONE identity, principal `qi6gd…` (working assumption).** Chat
+  side CONFIRMED. Video side WIRED but VERIFY EMPIRICALLY once the metadata/auth
+  server settles (Saikat reworking auth; username→principal lookup returns blank
+  now; qi6gd has 0 videos in the current frozen feed). "elitesuperdeer" is the
+  video username for the same principal (metadata split-brain).
 - **Web chat is unreachable without the app.** Clicking "Chat with Tara" on the
   web needs a valet ticket from the mobile app; a pure-web visitor can't start a
   chat (no web login/signup). Product decision needed: anonymous web chat, or a

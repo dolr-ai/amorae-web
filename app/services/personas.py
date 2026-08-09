@@ -60,15 +60,18 @@ PERSONAS: dict[str, dict] = {
         "hero_image": config.TARA_HERO_URL,
         "avatar_image": config.TARA_HERO_URL,
         "system_prompt": _TARA_SYSTEM,
-        # CORRECTED 2026-08-09: the live Tara profile Rishi pointed to is the
-        # video creator `elitesuperdeer` (Tara, 22, Toronto, "Powered by AI",
-        # 3k followers, has a video library). That is a DIFFERENT record from
-        # the qi6gd… "taaarraaah" chat bot we had hard-coded here. Her videos
-        # are published under her PRINCIPAL, which is the influencer_id the
-        # feed resolves on — TODO(rishi): supply that principal (Share → link
-        # on her profile). Until then her feed videos fall back to generic.
-        "influencer_id": None,  # TODO: elitesuperdeer's principal id
-        "app_username": "elitesuperdeer",
+        # WORKING ASSUMPTION (Rishi, 2026-08-09): this ONE principal is Tara
+        # for both chat and video. The two names are the known metadata
+        # split-brain — chat name "taaarraaah" vs video/metadata username
+        # "elitesuperdeer" — for the SAME principal. Chat side is CONFIRMED
+        # (canonical is_nsfw Tara, ~54k convs). Video side is WIRE + VERIFY
+        # EMPIRICALLY: the metadata/auth server is in flux (username→principal
+        # lookup returns blank right now), so once it settles, confirm her real
+        # videos + avatar actually load under this principal. If they come back
+        # empty, her videos live under a different principal and we swap this.
+        # Do NOT treat this as hard-verified until the auth system stabilises.
+        "influencer_id": "qi6gd-esmrx-v2oyd-7fwhm-ibfs5-trflm-xm3iy-xq6d3-3hmwu-jb7tk-5qe",
+        "app_username": "elitesuperdeer",  # video/metadata username, same principal
         "bio": (
             "Tara, 22, Toronto. Curvy and confident, and always planning the "
             "next trip. Tell me where I should go next."
