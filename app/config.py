@@ -73,11 +73,13 @@ LEGAL_COPY_APPROVED = _env_bool("LEGAL_COPY_APPROVED", False)
 # still name a custodian + address as processors expect the section present).
 RECORDS_CUSTODIAN = _env("RECORDS_CUSTODIAN", LEGAL_ENTITY)
 
-# Tara's hero photo. Served LOCALLY from static (`img-src 'self'` in the L1
-# CSP blocks external URLs), seeded from the CANONICAL spicy-Tara's real v2
-# avatar — the ONLY is_nsfw=true Tara (name=taaarraaah, id qi6gd…5qe, 54k
-# convs, Rishi's original 2026-01-13). Env-overridable, but any override MUST
-# be `self` or a CSP img-src allowlisted origin.
+# Tara's hero photo, served LOCALLY from static (the media CDN is CSP-allowed
+# but a local file is the safe default). This is currently a PLACEHOLDER.
+# CORRECTED 2026-08-09: the earlier provenance note here (qi6gd / taaarraaah)
+# was the WRONG Tara — the live Tara is the video profile `elitesuperdeer`
+# (Toronto, 22). Her real avatar comes from her CDN profile once Rishi supplies
+# her principal (see personas.py). Env-overridable; an override MUST be `self`
+# or a CSP img-src allowlisted origin.
 TARA_HERO_URL = _env("TARA_HERO_URL", "/static/tara.jpg")
 
 # LLM — reuse the SAME provider/model as v2's `user_chat_main_nsfw`

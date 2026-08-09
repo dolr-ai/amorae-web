@@ -39,11 +39,13 @@ Last updated: 2026-08-09
 
 ## 🧭 Open questions / findings for Rishi
 
-- **Tara's videos: NOT FOUND.** She's a built chat persona in v2 (54k+ convos,
-  avatar, system instructions) but has zero videos — none in the feed, no
-  media/video fields in her v2 record, empty metadata (no LoRA trigger word),
-  and the pipeline is image-only (video was excluded from the pilot). She likely
-  has *images*, not video. **Rishi: where do you believe the videos live?**
+- **Tara's videos: FOUND — different record than we had.** The live Tara is
+  the video-creator profile **`elitesuperdeer`** (Tara, 22, Toronto, "Powered
+  by AI", 3k followers, full video library) — NOT the `qi6gd`/"taaarraaah"
+  Mumbai chat bot we'd hard-coded. Persona metadata corrected (Toronto/22/bio).
+  **BLOCKED on Rishi:** need elitesuperdeer's PRINCIPAL id (Share → link on her
+  profile) to resolve her videos + real avatar. No public username→principal
+  lookup exists, so this is the one thing I can't derive.
 - **Web chat is unreachable without the app.** Clicking "Chat with Tara" on the
   web needs a valet ticket from the mobile app; a pure-web visitor can't start a
   chat (no web login/signup). Product decision needed: anonymous web chat, or a
