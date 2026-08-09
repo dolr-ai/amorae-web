@@ -168,11 +168,25 @@ def test_unmapped_publisher_falls_back_to_a_generic_creator():
 
 
 def test_known_persona_is_attributed_by_influencer_id():
+    """The video service confirmed publisher_user_id IS the influencer id, so
+    a persona's own id in that field resolves straight to her."""
     tara = personas.get("tara")
     video = feed_client._from_upstream(_upstream_row(publisher_user_id=tara["influencer_id"]))
     assert video.creator.handle == "tara"
     assert video.creator.display_name == "Tara"
     assert video.creator.subscription_price_cents == 1499
+
+
+def test_non_ai_publisher_is_never_resolved_to_a_persona():
+    """`publisher_user_id` is only an influencer id when from_ai_influencer is
+    true. A non-AI row that happens to carry a persona's id in that field must
+    still fall back to generic — we don't attribute human UGC to a persona."""
+    tara = personas.get("tara")
+    video = feed_client._from_upstream(
+        _upstream_row(publisher_user_id=tara["influencer_id"], from_ai_influencer=False)
+    )
+    assert video.creator.handle == ""
+    assert video.creator.display_name == "Amorae"
 
 
 # ------------------------------------------------------------------- paging
