@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -9,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 import config
 from database import close_pool, get_pool
 from routes import age, chat, creator, feed, gate, health, landing, legal
+from services import influencers_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,17 +29,21 @@ if config.SENTRY_DSN:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await get_pool()
+    # Personas now come from the shared ai_influencers catalogue (web-filtered),
+    # refreshed on a TTL by a background task. Prime it once at startup.
+    await influencers_client.refresh()
+    catalogue_task = asyncio.create_task(influencers_client.run_refresh_loop())
     logger.info("%s v%s started", config.APP_NAME, config.APP_VERSION)
-    # Don't let the hardcoded placeholders hide. Per the one-backend decision
-    # (docs/one-backend-data-layer-contract-2026-08-09.md), personas + the feed
-    # are TEMPORARY until the ai_influencers/surface + video-service rewire.
+    # The FEED is still TEMPORARY (hardcoded mock_feed.json) until the video
+    # rewire (PR #2, gated on Saikat's metadata). Don't let it hide.
     if config.FEED_SOURCE == "mock":
         logger.warning(
-            "TEMPORARY DATA: serving hardcoded personas + mock_feed.json. "
-            "Pending one-backend rewire (ai_influencers `surface` + video "
-            "service). See docs/one-backend-data-layer-contract-2026-08-09.md."
+            "TEMPORARY DATA: feed served from mock_feed.json. Pending the video "
+            "rewire (real videos for web-surface influencers). See "
+            "docs/one-backend-data-layer-contract-2026-08-09.md."
         )
     yield
+    catalogue_task.cancel()
     await close_pool()
 
 
