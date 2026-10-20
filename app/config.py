@@ -100,6 +100,12 @@ OPENROUTER_TEMPERATURE = _env_float("OPENROUTER_TEMPERATURE", 0.85)
 OPENROUTER_TIMEOUT = _env_int("OPENROUTER_TIMEOUT", 60)
 OPENROUTER_BASE_URL = _env("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 
+# Catalog — amorae reads the shared ai_influencers catalog from v2, filtered to
+# the web surface (surface IN ('web','both')). Cached in-memory + refreshed on a
+# TTL so we don't hit v2 per request; falls back to amorae's presentation config
+# if v2 is briefly unavailable. See docs/one-backend-data-layer-contract-*.md.
+INFLUENCERS_CACHE_TTL_SECONDS = _env_int("INFLUENCERS_CACHE_TTL_SECONDS", 300)
+
 # v2 (yral-rishi-agent) — the auth handoff + context-read live there.
 # We call v2 server-to-server with a web-scoped shared secret; the native
 # JWT NEVER reaches this domain (§4.7). amorae has NO credential to

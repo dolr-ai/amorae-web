@@ -34,7 +34,9 @@ frontend, swaps the data layer, becomes stateless. Contract:
 only, ALL prod ops → Session-6, never print secrets, never schedule on rishi-1/2/3.
 
 Rewire PRs (each gated on another session):
-- PR1 catalog client (personas from ai_influencers) — waits on `surface` column (dev session)
+- PR1 catalog client (personas from ai_influencers) — ✅ DONE (PR open): personas
+  now come from GET /api/v1/influencers?surface=web (cached, TTL refresh, fallback);
+  amorae keeps presentation config (handle/price/copy/images). Only Tara today.
 - PR2 feed real videos — waits on Saikat's auth/metadata settling
 - PR3 chat → v2 chat API + delete amorae_db layer — waits on dev session's v2 integration
 

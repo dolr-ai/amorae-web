@@ -233,14 +233,11 @@ def test_upstream_outage_degrades_instead_of_raising(monkeypatch):
 # ---------------------------------------------------------------- personas
 
 
-def test_persona_influencer_id_is_a_principal_or_an_explicit_none():
-    """A persona's influencer_id is either its publisher principal (so one
-    persona spans YRAL video + Amorae) or None when that principal isn't wired
-    yet. Tara's is wired to qi6gd (a working assumption); Mira/Nyx are None."""
-    for persona in personas.PERSONAS.values():
-        assert persona["influencer_id"] is None or isinstance(
-            persona["influencer_id"], str
-        )
+def test_personas_carry_their_catalogue_influencer_id():
+    """Every rendered persona is backed by a catalogue influencer, so it always
+    has an influencer_id (the principal the feed resolves on)."""
+    for persona in personas.all_personas():
+        assert persona["influencer_id"]
     assert personas.get("tara")["influencer_id"] is not None
 
 
