@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 import config
 from database import close_pool, get_pool
 from routes import age, chat, creator, feed, gate, health, landing, legal
+from services import feed_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ if config.SENTRY_DSN:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await get_pool()
+    feed_client.get_http_client()
     logger.info("%s v%s started", config.APP_NAME, config.APP_VERSION)
     # Don't let the hardcoded placeholders hide. Per the one-backend decision
     # (docs/one-backend-data-layer-contract-2026-08-09.md), personas + the feed
@@ -38,6 +40,7 @@ async def lifespan(app: FastAPI):
             "service). See docs/one-backend-data-layer-contract-2026-08-09.md."
         )
     yield
+    await feed_client.close_http_client()
     await close_pool()
 
 

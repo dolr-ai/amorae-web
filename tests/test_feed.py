@@ -230,6 +230,23 @@ def test_upstream_outage_degrades_instead_of_raising(monkeypatch):
     assert page.next_cursor is None
 
 
+def test_feed_http_client_is_reused(monkeypatch):
+    created = []
+
+    class _Client:
+        def __init__(self, timeout):
+            created.append(timeout)
+
+    monkeypatch.setattr(feed_client.httpx, "AsyncClient", _Client)
+    monkeypatch.setattr(feed_client, "_http_client", None)
+
+    first = feed_client.get_http_client()
+    second = feed_client.get_http_client()
+
+    assert first is second
+    assert created == [config.VIDEO_FEED_TIMEOUT]
+
+
 # ---------------------------------------------------------------- personas
 
 

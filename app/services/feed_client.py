@@ -44,6 +44,21 @@ logger = logging.getLogger(__name__)
 _MOCK_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "data", "mock_feed.json"
 )
+_http_client: httpx.AsyncClient | None = None
+
+
+def get_http_client() -> httpx.AsyncClient:
+    global _http_client
+    if _http_client is None:
+        _http_client = httpx.AsyncClient(timeout=config.VIDEO_FEED_TIMEOUT)
+    return _http_client
+
+
+async def close_http_client() -> None:
+    global _http_client
+    if _http_client is not None:
+        await _http_client.aclose()
+        _http_client = None
 
 # Videos whose publisher maps to no persona still need a name and a face, or
 # the overlay renders blank. They are shown as a generic creator and their
@@ -200,10 +215,11 @@ def _load_mock() -> list[dict[str, Any]]:
 
 async def _fetch_upstream(feed_key: str, count: int) -> list[dict[str, Any]]:
     url = f"{config.VIDEO_FEED_BASE_URL}/api/v1/recommend-with-metadata/{feed_key}"
-    async with httpx.AsyncClient(timeout=config.VIDEO_FEED_TIMEOUT) as client:
-        response = await client.get(url, params={"count": count, "rec_type": "mixed"})
-        response.raise_for_status()
-        return response.json().get("videos", [])
+    response = await get_http_client().get(
+        url, params={"count": count, "rec_type": "mixed"}
+    )
+    response.raise_for_status()
+    return response.json().get("videos", [])
 
 
 async def get_page(feed_key: str, cursor: str | None, limit: int) -> FeedPage:
